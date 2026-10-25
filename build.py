@@ -28,8 +28,8 @@ LEKCE = [
                          "a kdy má smysl provozovat AI lokálně."),
     ("ai-media.html", "Specializované AI aplikace na hlas, video a obrázky, profesionální portréty, "
                       "prompty na obrázky a rozcestník nástrojů."),
-    ("vibe-coding.html", "Tvorba aplikací popisem místo programování: Claude Artifacts, Lovable, Macaly "
-                         "a GitHub Copilot, co si tím uděláte a kde to narazí."),
+    ("vibe-coding.html", "Tvorba aplikací popisem místo programování: Claude Artifacts, Canva, Lovable, "
+                         "Macaly a GitHub Copilot, co si tím uděláte a kde to narazí."),
 ]
 
 SKELET = """<!doctype html>
