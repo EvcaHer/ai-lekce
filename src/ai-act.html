@@ -1,0 +1,556 @@
+<title>AI Act bez paniky</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@300;600;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: stejná kostra jako první lekce (rail vlevo, sloupec max 68ch), jiný akcent — indigo místo petrolejové */
+:root{
+  --bg:#F5F6F8; --surface:#FFFFFF; --sunk:#EDEFF4; --line:#D6DAE2;
+  --fg:#15181F; --muted:#575F6E;
+  --accent:#36468F; --accent-soft:#DDE2F2;
+  --warn:#8F5406; --warn-soft:#F6E7D1;
+  --bad:#8B2E25; --bad-soft:#F4DDD9;
+  --display:'Spectral',Georgia,'Times New Roman',serif;
+  --body:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10121A; --surface:#191C26; --sunk:#14171F; --line:#2D3340;
+    --fg:#E7EAF1; --muted:#9BA4B5;
+    --accent:#9BAEF0; --accent-soft:#1E2542;
+    --warn:#DFA55C; --warn-soft:#332618;
+    --bad:#E4897C; --bad-soft:#331F1C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10121A; --surface:#191C26; --sunk:#14171F; --line:#2D3340;
+  --fg:#E7EAF1; --muted:#9BA4B5;
+  --accent:#9BAEF0; --accent-soft:#1E2542;
+  --warn:#DFA55C; --warn-soft:#332618;
+  --bad:#E4897C; --bad-soft:#331F1C;
+  color-scheme: dark;
+}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1060px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 56px}
+
+header .eyebrow{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(1.9rem,5vw,2.9rem);line-height:1.1;margin:.3rem 0 .5rem;text-wrap:balance;letter-spacing:-.01em}
+.lede{font-size:1.06rem;color:var(--muted);max-width:60ch;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:18px;font-size:.84rem;color:var(--muted)}
+.meta span{display:inline-flex;align-items:center;gap:7px}
+.dotmark{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none}
+.bar{height:3px;background:var(--line);border-radius:2px;margin:22px 0 0;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);width:16.6%;transition:width .35s ease}
+
+.grid{display:grid;grid-template-columns:216px 1fr;gap:34px;margin-top:30px;align-items:start}
+.grid>*{min-width:0}
+@media (max-width:820px){.grid{grid-template-columns:1fr;gap:20px}}
+
+nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;position:sticky;top:env(safe-area-inset-top,0px)}
+@media (max-width:820px){nav ol{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:6px;position:static;scrollbar-width:thin}}
+.chip{appearance:none;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:var(--r);
+  padding:9px 11px;font:inherit;font-size:.88rem;color:var(--muted);cursor:pointer;display:flex;gap:10px;align-items:baseline;min-width:0}
+.chip:hover{background:var(--sunk);color:var(--fg)}
+.chip b{font-family:var(--mono);font-size:.76rem;font-weight:500;color:var(--accent);flex:none}
+.chip[aria-current="true"]{background:var(--surface);border-color:var(--line);color:var(--fg);font-weight:500}
+@media (max-width:820px){.chip{width:auto;white-space:nowrap}.chip span{display:none}.chip[aria-current="true"] span{display:inline}}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(20px,3.4vw,34px);min-width:0}
+.step h2{font-family:var(--display);font-weight:600;font-size:clamp(1.4rem,3.2vw,1.85rem);line-height:1.2;margin:0 0 .45rem;text-wrap:balance}
+.step p{max-width:66ch}
+.step p:first-of-type{margin-top:0}
+.kicker{font-family:var(--mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 .7rem}
+.note{font-size:.86rem;color:var(--muted);border-left:2px solid var(--line);padding-left:13px;margin:18px 0 0;max-width:62ch}
+.pull{font-family:var(--display);font-size:1.12rem;line-height:1.45;color:var(--fg);margin:22px 0 0;max-width:56ch}
+.step[hidden]{display:none!important}
+.anim{animation:in .3s ease both}
+@keyframes in{from{opacity:.35;transform:translateY(5px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.anim{animation:none}.bar>i{transition:none}}
+
+/* kvíz: situace + možnosti + vysvětlení */
+.kviz{display:grid;gap:14px;margin:22px 0 0}
+.sit{border:1px solid var(--line);border-radius:var(--r);background:var(--sunk);padding:15px 16px}
+.sit .q{font-weight:500;margin:0 0 11px;line-height:1.45}
+.sit .q em{font-style:normal;font-family:var(--mono);font-size:.74rem;color:var(--muted);display:block;margin-bottom:5px;letter-spacing:.06em;text-transform:uppercase}
+.sit .row{display:flex;flex-wrap:wrap;gap:7px}
+.sit button{appearance:none;font:inherit;font-size:.92rem;cursor:pointer;background:var(--surface);border:1px solid var(--line);
+  border-radius:999px;padding:7px 14px;color:var(--fg)}
+.sit button:hover{border-color:var(--accent)}
+.sit button.pick-ok{background:var(--accent-soft);border-color:var(--accent);color:var(--fg);font-weight:500}
+.sit button.pick-bad{background:var(--bad-soft);border-color:var(--bad);color:var(--fg)}
+.sit .fb{font-size:.92rem;margin:12px 0 0;padding-left:13px;border-left:2px solid var(--accent);max-width:62ch}
+.sit .fb.no{border-color:var(--bad)}
+
+/* časová osa */
+.tl{display:grid;gap:7px;margin:22px 0 0}
+.ev{border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.ev>button{appearance:none;width:100%;background:var(--surface);border:0;font:inherit;text-align:left;cursor:pointer;color:var(--fg);
+  display:flex;gap:14px;align-items:baseline;padding:12px 15px;min-width:0}
+.ev>button:hover{background:var(--sunk)}
+.ev .d{font-family:var(--mono);font-size:.82rem;color:var(--accent);flex:none;font-variant-numeric:tabular-nums}
+.ev .t{flex:1;min-width:0;line-height:1.4}
+.ev .s{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;font-weight:600;border-radius:4px;padding:3px 7px;flex:none}
+.s-on{background:var(--accent-soft);color:var(--accent)}
+.s-off{background:var(--sunk);color:var(--muted);border:1px solid var(--line)}
+.ev .det{padding:0 15px 14px;font-size:.92rem;color:var(--muted);max-width:66ch}
+@media (max-width:560px){.ev>button{flex-wrap:wrap;gap:6px 12px}.ev .t{flex-basis:100%}}
+
+/* rozbalovací seznam */
+.myths{display:grid;gap:10px;margin:22px 0 0}
+.myth{border:1px solid var(--line);border-radius:var(--r);background:var(--sunk);overflow:hidden}
+.myth>button{appearance:none;width:100%;background:none;border:0;font:inherit;text-align:left;padding:14px 16px;cursor:pointer;
+  display:flex;gap:12px;align-items:flex-start;color:var(--fg)}
+.myth>button:hover{background:var(--accent-soft)}
+.myth .q{flex:1;min-width:0;font-weight:500}
+.myth .sign{font-family:var(--mono);font-size:.78rem;color:var(--accent);flex:none;padding-top:2px}
+.myth .a{padding:0 16px 15px 42px;font-size:.94rem;color:var(--muted);max-width:62ch}
+
+/* checklist a úřady */
+.rules{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:8px}
+.rules label{display:flex;gap:13px;align-items:flex-start;border:1px solid var(--line);border-radius:var(--r);
+  background:var(--surface);padding:13px 15px;cursor:pointer;line-height:1.45}
+.rules label:hover{background:var(--sunk)}
+.rules input{appearance:none;width:19px;height:19px;flex:none;margin:2px 0 0;border:1.5px solid var(--line);border-radius:5px;
+  background:var(--bg);cursor:pointer;position:relative}
+.rules input:checked{background:var(--accent);border-color:var(--accent)}
+.rules input:checked::after{content:"";position:absolute;left:5px;top:2px;width:5px;height:10px;border:solid var(--surface);
+  border-width:0 2px 2px 0;transform:rotate(42deg)}
+.rules input:checked~.txt{color:var(--muted)}
+.done{margin:20px 0 0;font-size:.92rem;color:var(--accent);font-weight:500}
+.urady{width:100%;border-collapse:collapse;margin:20px 0 0;font-size:.92rem}
+.urady th,.urady td{text-align:left;padding:9px 12px 9px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.urady th{font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.urady td:first-child{font-weight:500;white-space:nowrap;padding-right:18px}
+
+.foot{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-top:26px}
+.btns{display:flex;gap:9px}
+.btn{appearance:none;font:inherit;cursor:pointer;border-radius:8px;padding:10px 20px;border:1px solid var(--line);
+  background:var(--surface);color:var(--fg)}
+.btn:hover{background:var(--sunk)}
+.btn.main{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:500}
+.btn.main:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.4;cursor:default}
+.pos{font-family:var(--mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+footer.sig{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted);display:grid;gap:10px}
+footer.sig a{color:var(--accent)}
+.disc{border:1px solid var(--line);border-radius:var(--r);background:var(--sunk);padding:13px 15px;max-width:72ch;line-height:1.5}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Výukový průvodce · 2. díl</p>
+  <h1>AI Act bez paniky</h1>
+  <p class="lede">Co z evropského nařízení o umělé inteligenci skutečně dopadá na běžnou kancelář — a co je mediální šum.</p>
+  <div class="meta">
+    <span><i class="dotmark"></i>6 kroků, asi 20 minut</span>
+    <span><i class="dotmark"></i>Stav k 25. 10. 2026</span>
+    <span><i class="dotmark"></i>Šipkami ← → se dá listovat</span>
+  </div>
+  <div class="bar"><i id="fill"></i></div>
+</header>
+
+<div class="grid">
+  <nav aria-label="Kroky">
+    <ol>
+      <li><button class="chip" aria-current="true" data-go="0"><b>01</b><span>Koho se to týká</span></button></li>
+      <li><button class="chip" data-go="1"><b>02</b><span>Co kdy platí</span></button></li>
+      <li><button class="chip" data-go="2"><b>03</b><span>Čtyři stupně rizika</span></button></li>
+      <li><button class="chip" data-go="3"><b>04</b><span>Co je zakázané</span></button></li>
+      <li><button class="chip" data-go="4"><b>05</b><span>Musím to označit</span></button></li>
+      <li><button class="chip" data-go="5"><b>06</b><span>Školení a dozor</span></button></li>
+    </ol>
+  </nav>
+
+  <div>
+  <main class="panel">
+
+    <!-- 1 -->
+    <section class="step" id="s0">
+      <p class="kicker">Krok 1 ze 6</p>
+      <h2>Netýká se to jen těch, kdo AI vyrábějí</h2>
+      <p>AI Act je evropské nařízení. To znamená, že platí přímo — nečeká se na český zákon, který by ho „přeložil“. Účinnosti nabývá po částech od roku 2024 do roku 2028.</p>
+      <p>Nejčastější omyl na školeních: „my AI nevyvíjíme, nás se to netýká“. Nařízení rozlišuje hlavně dvě role a ta druhá dopadá skoro na každou firmu, která dnes používá Copilot nebo ChatGPT.</p>
+      <div class="myths" id="role"></div>
+      <p class="pull">Většina kancelářských firem je zavádějící subjekt. Povinností má výrazně míň než ten, kdo systém vyrábí — ale nulové nejsou.</p>
+      <div class="kviz" id="q1"></div>
+    </section>
+
+    <!-- 2 -->
+    <section class="step" id="s1" hidden>
+      <p class="kicker">Krok 2 ze 6</p>
+      <h2>Co už platí a co teprve přijde</h2>
+      <p>V červenci 2026 vyšla novela (nařízení 2026/1744, takzvaný AI Omnibus), která část termínů odsunula. Zprávy z let 2024 a 2025 proto dnes uvádějí data, která už neplatí — pozor na starší články a prezentace.</p>
+      <p>Klikněte na kterýkoli milník.</p>
+      <div class="tl" id="osa"></div>
+      <p class="note">Zelený štítek počítá stránka podle dnešního data, takže osa nezestárne. Termíny se ale mohou dál měnit — AI Act byl novelizován už dvakrát.</p>
+    </section>
+
+    <!-- 3 -->
+    <section class="step" id="s2" hidden>
+      <p class="kicker">Krok 3 ze 6</p>
+      <h2>Čtyři stupně rizika</h2>
+      <p>Celé nařízení stojí na jedné myšlence: čím víc může systém člověku ublížit, tím přísnější pravidla. Ne podle toho, jak je technologie pokročilá, ale podle toho, k čemu se používá.</p>
+      <p>Tentýž model může spadnout do různých kategorií podle použití. ChatGPT na psaní e-mailů je minimální riziko. Stejný ChatGPT nasazený na třídění životopisů je vysoké riziko.</p>
+      <p>Zkuste zařadit šest situací.</p>
+      <div class="kviz" id="q2"></div>
+      <p class="note">Drtivá většina toho, co se v kanceláři děje, spadá do minimálního rizika. Povinnosti začínají tam, kde AI rozhoduje o lidech.</p>
+    </section>
+
+    <!-- 4 -->
+    <section class="step" id="s3" hidden>
+      <p class="kicker">Krok 4 ze 6</p>
+      <h2>Co je zakázané úplně</h2>
+      <p>Osm praktik je v EU zakázaných od 2. února 2025. Nejde o teorii — dvě z nich se běžné firmy týkají přímo a většina lidí o nich neví.</p>
+      <div class="myths" id="zakazy"></div>
+      <p class="pull">Pokud vám někdo nabízí software, který „pozná náladu operátorů na lince“ nebo „vyhodnotí zaujetí studentů z kamery“, prodává vám něco, co je v EU zakázané.</p>
+      <p class="note">Výjimky existují — například u zdravotních a bezpečnostních důvodů. Jsou ale úzké a je potřeba je umět doložit.</p>
+    </section>
+
+    <!-- 5 -->
+    <section class="step" id="s4" hidden>
+      <p class="kicker">Krok 5 ze 6</p>
+      <h2>Musím to označit?</h2>
+      <p>Od 2. srpna 2026 platí pravidla o transparentnosti (článek 50). Kolem nich vzniklo nejvíc paniky: „teď musíme označovat každý e-mail“. Nemusíte.</p>
+      <p>Povinnosti jsou rozdělené. Na poskytovatele systému padá strojově čitelné označení ve výstupu — to řeší OpenAI nebo Microsoft, ne vy. Na toho, kdo obsah zveřejňuje, padá viditelné označení, a to jen ve dvou případech.</p>
+      <div class="kviz" id="q3"></div>
+      <p class="note">Důležitá výjimka přímo z nařízení: u textů, které prošly skutečnou lidskou kontrolou nebo redakčním dohledem a někdo za ně nese odpovědnost, se povinnost označení za stanovených podmínek neuplatní.</p>
+    </section>
+
+    <!-- 6 -->
+    <section class="step" id="s5" hidden>
+      <p class="kicker">Krok 6 ze 6</p>
+      <h2>Školení lidí a kdo to hlídá</h2>
+      <p>Článek 4 říká, že firmy mají dbát na to, aby lidé, kteří s AI pracují, jí dostatečně rozuměli. Platí od 2. února 2025 a týká se i firem, které AI jen používají.</p>
+      <p>Novela z roku 2026 tuhle povinnost zmírnila: z původního „zajistit dostatečnou úroveň“ se stalo „přijmout opatření na podporu“. Nemusíte tedy u každého zaměstnance garantovat konkrétní úroveň znalostí. Mezi porušeními, za která nařízení vyjmenovává pokuty, článek 4 navíc není.</p>
+      <p class="pull">Z povinnosti se stalo spíš očekávání. Ale v okamžiku, kdy AI ve firmě něco zkazí, bude první otázka kontroly znít: jak jste lidi připravili?</p>
+      <p style="margin-top:22px"><strong>Čtyři otázky, na které byste měli znát odpověď:</strong></p>
+      <ul class="rules" id="rules"></ul>
+      <p class="done" id="doneMsg" hidden>Čtyři odpovědi, které z AI Actu ve firmě udělají administrativu místo rizika.</p>
+      <h3 style="font-family:var(--display);font-weight:600;font-size:1.15rem;margin:30px 0 .3rem">Kdo bude dohlížet v Česku</h3>
+      <p style="font-size:.95rem">Nařízení platí samo o sobě, ale český adaptační zákon má teprve určit, který úřad co dělá. V době vzniku tohoto materiálu (říjen 2026) zákon ještě nebyl přijat, takže rozdělení níž je podle návrhu a může se změnit.</p>
+      <table class="urady">
+        <thead><tr><th>Úřad</th><th>Oblast podle návrhu</th></tr></thead>
+        <tbody>
+          <tr><td>ČTÚ</td><td>hlavní dozor a jednotné kontaktní místo, zbytková působnost všude jinde</td></tr>
+          <tr><td>ČNB</td><td>finanční sektor</td></tr>
+          <tr><td>ÚOOÚ</td><td>biometrika</td></tr>
+          <tr><td>ÚNMZ</td><td>oznamující orgán pro subjekty posuzující shodu</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+
+  <div class="foot">
+    <span class="pos" id="pos">Krok 1 / 6</span>
+    <div class="btns">
+      <button class="btn" id="prev" disabled>Zpět</button>
+      <button class="btn main" id="next">Další krok</button>
+    </div>
+  </div>
+  </div>
+</div>
+
+<footer class="sig">
+  <p class="disc"><strong>Tohle je výukový materiál, ne právní poradenství.</strong> Stav k 25. 10. 2026. AI Act se od svého přijetí změnil už dvakrát, naposledy nařízením 2026/1744 z července 2026. U konkrétního rozhodnutí si ověřte aktuální znění nebo se zeptejte právníka.</p>
+  <p>Zdroje: <a href="https://mpo.gov.cz/cz/rozcestnik/pro-media/tiskove-zpravy/novela-ai-aktu-a-nove-pokyny-upresnuji-pravidla-pro-vyuzivani-umele-inteligence--294150/" target="_blank" rel="noopener">tisková zpráva MPO k novele</a> · <a href="https://artificialintelligenceact.eu/ai-act-explorer/" target="_blank" rel="noopener">AI Act Explorer</a> · <a href="https://eur-lex.europa.eu/legal-content/CS/TXT/?uri=CELEX%3A32024R1689" target="_blank" rel="noopener">úplné znění na EUR-Lexu</a></p>
+  <p>Předchozí díl: <a href="https://evcaher.github.io/ai-lekce/" target="_blank" rel="noopener">Základy AI pro kancelář</a> · Výukový materiál — Eva Hermanová</p>
+</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var steps = Array.prototype.slice.call(document.querySelectorAll('.step'));
+  var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+  var tokens = ['k1','k2','k3','k4','k5','k6'];
+  var cur = 0;
+
+  function show(i){
+    i = Math.max(0, Math.min(steps.length - 1, i));
+    cur = i;
+    steps.forEach(function(s, n){ s.hidden = n !== i; s.classList.remove('anim'); });
+    void steps[i].offsetWidth;
+    steps[i].classList.add('anim');
+    chips.forEach(function(c, n){ c.setAttribute('aria-current', n === i ? 'true' : 'false'); });
+    document.getElementById('fill').style.width = ((i + 1) / steps.length * 100) + '%';
+    document.getElementById('pos').textContent = 'Krok ' + (i + 1) + ' / ' + steps.length;
+    document.getElementById('prev').disabled = i === 0;
+    var nx = document.getElementById('next');
+    nx.disabled = i === steps.length - 1;
+    nx.textContent = i === steps.length - 1 ? 'Na konci' : 'Další krok';
+    try { history.replaceState(null, '', '#' + tokens[i]); } catch (e) {}
+  }
+  chips.forEach(function(c){ c.addEventListener('click', function(){ show(+c.dataset.go); }); });
+  document.getElementById('next').addEventListener('click', function(){ show(cur + 1); });
+  document.getElementById('prev').addEventListener('click', function(){ show(cur - 1); });
+  document.addEventListener('keydown', function(e){
+    if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+    if (e.key === 'ArrowRight') show(cur + 1);
+    if (e.key === 'ArrowLeft') show(cur - 1);
+  });
+  window.addEventListener('hashchange', function(){
+    var i = tokens.indexOf((location.hash || '').replace('#', ''));
+    if (i > -1 && i !== cur) show(i);
+  });
+
+  /* ---- rozbalovací seznam ---- */
+  function akordeon(mount, data){
+    var w = document.getElementById(mount);
+    data.forEach(function(m){
+      var d = document.createElement('div');
+      d.className = 'myth';
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-expanded', 'false');
+      b.innerHTML = '<span class="q"></span><span class="sign">+</span>';
+      b.querySelector('.q').textContent = m[0];
+      var a = document.createElement('p');
+      a.className = 'a';
+      a.style.paddingLeft = '16px';
+      a.textContent = m[1];
+      a.hidden = true;
+      b.addEventListener('click', function(){
+        a.hidden = !a.hidden;
+        b.setAttribute('aria-expanded', String(!a.hidden));
+        b.querySelector('.sign').textContent = a.hidden ? '+' : '−';
+      });
+      d.appendChild(b); d.appendChild(a); w.appendChild(d);
+    });
+  }
+
+  /* ---- kvíz ---- */
+  function kviz(mount, items){
+    var w = document.getElementById(mount);
+    items.forEach(function(it){
+      var d = document.createElement('div');
+      d.className = 'sit';
+      var q = document.createElement('p');
+      q.className = 'q';
+      q.innerHTML = '<em></em><span></span>';
+      q.querySelector('em').textContent = it.stitek;
+      q.querySelector('span').textContent = it.text;
+      var row = document.createElement('div');
+      row.className = 'row';
+      var fb = document.createElement('p');
+      fb.className = 'fb';
+      fb.hidden = true;
+      it.opts.forEach(function(o){
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = o.label;
+        b.addEventListener('click', function(){
+          row.querySelectorAll('button').forEach(function(x){ x.className = ''; });
+          b.className = o.ok ? 'pick-ok' : 'pick-bad';
+          fb.textContent = o.why;
+          fb.className = 'fb' + (o.ok ? '' : ' no');
+          fb.hidden = false;
+        });
+        row.appendChild(b);
+      });
+      d.appendChild(q); d.appendChild(row); d.appendChild(fb); w.appendChild(d);
+    });
+  }
+
+  /* ---- krok 1 ---- */
+  akordeon('role', [
+    ['Poskytovatel — kdo systém vyvíjí nebo ho uvádí na trh pod svým jménem',
+     'OpenAI, Microsoft, Google. Ale taky česká firma, která si postaví vlastního chatbota a nasadí ho zákazníkům, nebo ta, která cizí model přeznačí pod svou značkou. Sem padá drtivá většina povinností z nařízení.'],
+    ['Zavádějící subjekt — kdo hotový systém používá při své činnosti',
+     'Účetní kancelář s Copilotem, e-shop s AI chatbotem od dodavatele, personální oddělení používající nástroj na třídění životopisů. Povinností je výrazně míň a liší se podle toho, do jaké rizikové kategorie systém spadá.'],
+    ['Kdo AI používá doma a pro sebe, mimo práci',
+     'Na čistě osobní, neprofesní použití nařízení nedopadá. Jakmile je to ale součást práce, byť jen pomoc s e-maily, jste zavádějící subjekt.']
+  ]);
+
+  kviz('q1', [
+    { stitek: 'Situace', text: 'Účetní kancelář používá Copilota v Microsoft 365 na shrnutí schůzek a návrhy e-mailů.',
+      opts: [
+        { label: 'Poskytovatel', ok: false, why: 'Ne. Poskytovatel je Microsoft — ten systém vyvinul a uvedl na trh. Kancelář ho jen používá.' },
+        { label: 'Zavádějící subjekt', ok: true, why: 'Přesně tak. A protože jde o minimální riziko, konkrétních povinností z toho plyne velmi málo — hlavně dbát na to, aby lidé nástroji rozuměli.' },
+        { label: 'Nespadá do nařízení', ok: false, why: 'Spadá. Jde o profesní použití, takže kancelář je zavádějící subjekt. Jen z toho zatím neplyne skoro nic.' }
+      ]},
+    { stitek: 'Situace', text: 'Softwarová firma postaví na cizím modelu vlastního chatbota, dá mu své jméno a prodává ho e-shopům.',
+      opts: [
+        { label: 'Poskytovatel', ok: true, why: 'Ano. Uvedení na trh pod vlastním jménem z vás dělá poskytovatele se vším, co k tomu patří — včetně povinnosti zajistit, aby chatbot uměl říct, že je AI.' },
+        { label: 'Zavádějící subjekt', ok: false, why: 'Ne. Zavádějící subjekt by byl ten e-shop, který si chatbota koupí. Firma, která ho prodává pod svým jménem, je poskytovatel.' },
+        { label: 'Obojí najednou', ok: false, why: 'Role se kombinovat dají, ale tady ne — firma chatbota neprovozuje pro sebe, prodává ho dál. Je poskytovatel.' }
+      ]}
+  ]);
+
+  /* ---- krok 2 ---- */
+  var osa = [
+    ['2024-08-01', '1. 8. 2024', 'Nařízení vstoupilo v platnost',
+     'Od tohoto dne běží lhůty. Samotné povinnosti ale začaly platit až postupně, proto ten zdánlivý klid v prvním roce.'],
+    ['2025-02-02', '2. 2. 2025', 'Zákazy a AI gramotnost',
+     'Osm zakázaných praktik přestalo být legálních. Zároveň začala platit povinnost podle článku 4 — dbát na to, aby lidé pracující s AI nástroji rozuměli.'],
+    ['2025-08-02', '2. 8. 2025', 'Obecné modely, sankce a správa',
+     'Povinnosti pro poskytovatele velkých obecných modelů (GPAI), pravidla pro pokuty a struktura dozorových orgánů. Novela se těchto termínů nedotkla.'],
+    ['2026-08-02', '2. 8. 2026', 'Transparentnost podle článku 50',
+     'Chatbot musí říct, že je AI. Generovaný obsah musí být strojově rozpoznatelný. Deepfaky se musí označit. Tohle je část, která dnes dopadá na běžné firmy nejvíc.'],
+    ['2026-12-02', '2. 12. 2026', 'Konec přechodného období a dva nové zákazy',
+     'Poskytovatelé generativní AI uvedené na trh před srpnem 2026 musí doplnit strojově čitelné označení výstupů. Zároveň přibývají zákazy AI generující materiál zneužívající děti a nekonsenzuální intimní obsah.'],
+    ['2027-12-02', '2. 12. 2027', 'Vysoce rizikové systémy podle přílohy III',
+     'Nábor a hodnocení zaměstnanců, vzdělávání, přístup ke službám, vymáhání práva. Původně to mělo platit od srpna 2026 — novela 2026/1744 termín posunula o šestnáct měsíců.'],
+    ['2028-08-02', '2. 8. 2028', 'Vysoce rizikové systémy podle přílohy I',
+     'AI jako bezpečnostní součást regulovaných výrobků — zdravotnické prostředky, strojní zařízení, výtahy. Také posunuto novelou.']
+  ];
+  var dnes = new Date();
+  var ow = document.getElementById('osa');
+  osa.forEach(function(e){
+    var plati = new Date(e[0]) <= dnes;
+    var d = document.createElement('div');
+    d.className = 'ev';
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('aria-expanded', 'false');
+    b.innerHTML = '<span class="d"></span><span class="t"></span><span class="s ' + (plati ? 's-on">už platí' : 's-off">teprve přijde') + '</span>';
+    b.querySelector('.d').textContent = e[1];
+    b.querySelector('.t').textContent = e[2];
+    var det = document.createElement('p');
+    det.className = 'det';
+    det.textContent = e[3];
+    det.hidden = true;
+    b.addEventListener('click', function(){
+      det.hidden = !det.hidden;
+      b.setAttribute('aria-expanded', String(!det.hidden));
+    });
+    d.appendChild(b); d.appendChild(det); ow.appendChild(d);
+  });
+
+  /* ---- krok 3 ---- */
+  var kat = ['Nepřijatelné', 'Vysoké', 'Omezené', 'Minimální'];
+  function ot(text, spravna, duvody){
+    return { stitek: 'Zařaďte', text: text,
+      opts: kat.map(function(k, i){ return { label: k, ok: i === spravna, why: duvody[i] }; }) };
+  }
+  kviz('q2', [
+    ot('Kamera na pracovišti vyhodnocuje z obličejů, jestli jsou operátoři ve stresu.', 0,
+      ['Ano. Rozpoznávání emocí na pracovišti je zakázané od února 2025, bez ohledu na to, jak dobrý úmysl za tím stojí.',
+       'Víc než vysoké riziko — tohle je rovnou zakázané. Na pracovišti a ve škole se emoce rozpoznávat nesmějí.',
+       'Ne. Nejde o transparentnost, ale o zakázanou praktiku.',
+       'Rozhodně ne. Patří to mezi osm praktik zakázaných v celé EU.']),
+    ot('Nástroj automaticky třídí došlé životopisy a doporučuje uchazeče k pohovoru.', 1,
+      ['Zakázané to není, ale blízko. Rozhodování o lidech v zaměstnání patří mezi vysoce rizikové použití.',
+       'Správně. Příloha III, oblast zaměstnávání. Povinnosti se začnou uplatňovat od 2. 12. 2027 — do té doby to legální je.',
+       'Víc než to. Tady AI rozhoduje o přístupu k práci, což nařízení hlídá nejpřísněji hned po zákazech.',
+       'Ne. Všude, kde AI ovlivňuje něčí kariéru, je riziko vysoké.']),
+    ot('Chatbot na webu firmy odpovídá zákazníkům na dotazy k objednávkám.', 2,
+      ['Ne, chatbot není zakázaný.',
+       'Ne. Vysoké riziko by to bylo, kdyby rozhodoval třeba o přidělení úvěru.',
+       'Ano. Jediná povinnost je dát člověku vědět, že mluví se strojem. Zařizuje ji poskytovatel systému.',
+       'Skoro — ale ne úplně. Kvůli povinnosti říct „jsem AI“ spadá do omezeného rizika.']),
+    ot('Outlook řadí poštu a odfiltrovává spam.', 3,
+      ['Ne.',
+       'Ne. O ničem podstatném to nerozhoduje.',
+       'Ne, nikdo nemusí být informován, že spamový filtr je AI.',
+       'Ano. Naprostá většina AI v kanceláři je přesně tady a neplynou z ní žádné povinnosti.']),
+    ot('Marketing nechá vygenerovat obrázek do reklamy na sociální síti.', 2,
+      ['Ne.',
+       'Ne, o lidech se nerozhoduje.',
+       'Ano. Obsah musí být strojově rozpoznatelný jako generovaný — to je ale povinnost poskytovatele nástroje. Viditelná nálepka na každém obrázku povinná není.',
+       'Těsně vedle. Kvůli pravidlům o označování syntetického obsahu jde o omezené riziko.']),
+    ot('Systém hodnotí občany podle chování a podle skóre jim omezuje přístup ke službám.', 0,
+      ['Ano. Sociální skórování je zakázané bez výjimky.',
+       'Ne, tohle je za hranicí vysokého rizika — je to rovnou zakázané.',
+       'Ne.',
+       'Ne.'])
+  ]);
+
+  /* ---- krok 4 ---- */
+  akordeon('zakazy', [
+    ['Rozpoznávání emocí na pracovišti a ve škole ← týká se firem',
+     'Zakázané od února 2025. Software, který z hlasu nebo obličeje vyhodnocuje náladu, stres nebo zaujetí zaměstnanců a studentů, se v EU používat nesmí. Výjimky jsou jen ze zdravotních a bezpečnostních důvodů — třeba detekce únavy řidiče.'],
+    ['Podprahové a manipulativní techniky ← týká se firem',
+     'AI, která cíleně obchází vědomé rozhodování a vede člověka k něčemu, co by jinak neudělal, se škodlivým následkem. V praxi míří na agresivní marketingové nástroje a na zneužívání zranitelnosti podle věku nebo postižení.'],
+    ['Sociální skórování',
+     'Hodnocení lidí podle chování nebo osobních vlastností, které jim pak znevýhodňuje přístup ke službám v nesouvisejících oblastech.'],
+    ['Necílené stahování obličejů z internetu a kamer',
+     'Budování databází pro rozpoznávání obličejů plošným stahováním z webu nebo záznamů kamer.'],
+    ['Biometrická kategorizace podle citlivých znaků',
+     'Odvozování rasy, politických názorů, náboženství, odborové příslušnosti nebo sexuální orientace z biometrických údajů.'],
+    ['Predikce trestné činnosti jen z profilu člověka',
+     'Odhadování, že někdo spáchá trestný čin, pouze na základě profilování nebo osobnostních rysů — bez vazby na konkrétní skutečnosti.'],
+    ['Dálková biometrická identifikace v reálném čase na veřejnosti',
+     'Pro vymáhání práva, až na úzce vymezené výjimky s předchozím povolením.'],
+    ['Nově od 2. 12. 2026: generování materiálu zneužívajícího děti a intimních deepfaků bez souhlasu',
+     'Dva zákazy, které přidala novela 2026/1744 z července 2026.']
+  ]);
+
+  /* ---- krok 5 ---- */
+  kviz('q3', [
+    { stitek: 'Musím označit?', text: 'E-mail klientovi, který jsem napsala sama a AI mi jen opravila překlepy a učesala formulace.',
+      opts: [
+        { label: 'Ano', ok: false, why: 'Ne. Pomocná úprava hotového textu není generování obsahu. Kdyby se musel označovat každý text, který prošel kontrolou pravopisu, znamenalo by to označit skoro všechno.' },
+        { label: 'Ne', ok: true, why: 'Správně. Povinnost míří na obsah vytvořený nebo podstatně změněný umělou inteligencí, ne na pomoc s formulací.' },
+        { label: 'Záleží', ok: false, why: 'Tady opravdu ne. Gramatická korektura povinnost označení nespouští.' }
+      ]},
+    { stitek: 'Musím označit?', text: 'Video na firemní web, kde mluví vygenerovaná postava s obličejem skutečného kolegy.',
+      opts: [
+        { label: 'Ano', ok: true, why: 'Ano. Tohle je učebnicový deepfake a ten, kdo ho zveřejňuje, ho musí viditelně označit jako uměle vytvořený. Navíc byste potřebovali souhlas toho kolegy.' },
+        { label: 'Ne', ok: false, why: 'Musíte. Podoba skutečného člověka vygenerovaná AI je deepfake a označení je povinné.' },
+        { label: 'Záleží', ok: false, why: 'Nezáleží. U deepfaku je označení povinné vždy.' }
+      ]},
+    { stitek: 'Musím označit?', text: 'Článek na firemní blog o chystané změně zákona, který z větší části napsala AI.',
+      opts: [
+        { label: 'Ano', ok: false, why: 'Skoro. Povinnost se týká textů informujících veřejnost o věcech veřejného zájmu — jenže pokud text prošel skutečnou lidskou kontrolou a někdo za něj nese odpovědnost, za stanovených podmínek se neuplatní.' },
+        { label: 'Ne', ok: false, why: 'Tak jednoduché to není. Text o chystané legislativě informuje o věci veřejného zájmu, a tam povinnost označení vzniká.' },
+        { label: 'Záleží', ok: true, why: 'Přesně. Rozhoduje, jestli text prošel skutečnou redakční kontrolou a jestli za něj někdo odpovídá. Pokud ano, označovat se nemusí. Pokud jste ho jen nechali vygenerovat a publikovali, označte ho.' }
+      ]},
+    { stitek: 'Musím označit?', text: 'Interní prezentace pro poradu, kterou mi z podkladů složil Copilot.',
+      opts: [
+        { label: 'Ano', ok: false, why: 'Ne. Pravidla míří na obsah zveřejněný navenek, ne na interní dokumenty.' },
+        { label: 'Ne', ok: true, why: 'Správně. Interní materiály povinnost označení nespouštějí. Jiná věc je slušnost vůči kolegům a firemní pravidla.' },
+        { label: 'Záleží', ok: false, why: 'U čistě interního použití ne. Jakmile ale prezentaci pošlete ven, situace se mění.' }
+      ]},
+    { stitek: 'Musím zařídit?', text: 'Chatbot na našem e-shopu, kterého jsme koupili od dodavatele, musí říct, že je AI.',
+      opts: [
+        { label: 'Já jako provozovatel', ok: false, why: 'Primárně ne. Povinnost informovat uživatele, že komunikuje se systémem AI, leží na poskytovateli systému — tedy na dodavateli.' },
+        { label: 'Dodavatel systému', ok: true, why: 'Ano. Je to povinnost poskytovatele. Ve vlastním zájmu si ale ověřte, že ji dodavatel splnil — reputačně to padne na vás.' },
+        { label: 'Nikdo, je to dobrovolné', ok: false, why: 'Od 2. srpna 2026 je to povinné. Člověk musí vědět nejpozději při první interakci, že nemluví s člověkem.' }
+      ]}
+  ]);
+
+  /* ---- krok 6 ---- */
+  var rules = [
+    'Víme, které AI nástroje se u nás reálně používají — včetně těch, co si lidé přinesli sami?',
+    'Mají lidé, kteří s AI pracují, aspoň základní školení a vědí, kde jsou hranice?',
+    'Máme napsané, co se do promptu smí a co ne — hlavně u osobních údajů?',
+    'Víme u každého nástroje, kdo je jeho poskytovatel a co má splněno za nás?'
+  ];
+  var rw = document.getElementById('rules'), dm = document.getElementById('doneMsg');
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem('aiact-rules') || '{}') || {}; } catch (e) { saved = {}; }
+  function checkDone(){
+    var all = Array.prototype.slice.call(rw.querySelectorAll('input')).every(function(i){ return i.checked; });
+    dm.hidden = !all;
+  }
+  rules.forEach(function(r, i){
+    var li = document.createElement('li');
+    var lab = document.createElement('label');
+    var inp = document.createElement('input');
+    inp.type = 'checkbox';
+    inp.id = 'aiact-rule' + i;
+    inp.checked = !!saved['r' + i];
+    var sp = document.createElement('span');
+    sp.className = 'txt';
+    sp.textContent = r;
+    inp.addEventListener('change', function(){
+      saved['r' + i] = inp.checked;
+      try { localStorage.setItem('aiact-rules', JSON.stringify(saved)); } catch (e) {}
+      checkDone();
+    });
+    lab.appendChild(inp); lab.appendChild(sp); li.appendChild(lab); rw.appendChild(li);
+  });
+  checkDone();
+
+  var h = (location.hash || '').replace('#', '');
+  var ix = tokens.indexOf(h);
+  show(ix > -1 ? ix : 0);
+})();
+</script>

@@ -9,6 +9,9 @@ Autorka: Eva Hermanová — školení Microsoft Office, Microsoft 365 a AI nást
 | Lekce | Co obsahuje |
 |---|---|
 | [Základy AI pro kancelář](https://evcaher.github.io/ai-lekce/) | Šest kroků: jak model skládá odpověď, proč si vymýšlí, prompt po částech, kam ho pustit a kam ne |
+| [AI Act bez paniky](https://evcaher.github.io/ai-lekce/ai-act.html) | Šest kroků: role podle nařízení, časová osa termínů, čtyři stupně rizika, zakázané praktiky, kdy se obsah musí označit |
+
+Lekce o AI Actu obsahuje konkrétní termíny a odkazuje na stav k říjnu 2026. Nařízení se mění — před dalším školením si ověřte, jestli platí pořád.
 
 Na konkrétní krok se dá odkázat kotvou — `#k1` až `#k6`. Hodí se, když chcete po školení poslat odkaz na jedno místo.
 

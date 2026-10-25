@@ -18,6 +18,8 @@ SRC = ROOT / "src"
 LEKCE = [
     ("ai-zaklady.html", "Interaktivní průvodce základy jazykových modelů pro kancelářskou praxi. "
                         "Šest kroků, v každém něco ke zkoušení."),
+    ("ai-act.html", "Co z evropského nařízení o umělé inteligenci dopadá na běžnou kancelář. "
+                    "Časová osa, kvízy a praktická pravidla pro označování AI obsahu."),
 ]
 
 SKELET = """<!doctype html>
