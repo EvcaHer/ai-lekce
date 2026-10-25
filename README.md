@@ -6,12 +6,15 @@ Autorka: Eva Hermanová — školení Microsoft Office, Microsoft 365 a AI nást
 
 ## Lekce
 
+Rozcestník se všemi lekcemi: **https://evcaher.github.io/ai-lekce/**
+
 | Lekce | Co obsahuje |
 |---|---|
-| [Základy AI pro kancelář](https://evcaher.github.io/ai-lekce/) | Šest kroků: jak model skládá odpověď, proč si vymýšlí, prompt po částech, kam ho pustit a kam ne |
-| [AI Act bez paniky](https://evcaher.github.io/ai-lekce/ai-act.html) | Šest kroků: role podle nařízení, časová osa termínů, čtyři stupně rizika, zakázané praktiky, kdy se obsah musí označit |
+| [1. Základy AI pro kancelář](https://evcaher.github.io/ai-lekce/ai-zaklady.html) | Jak model skládá odpověď, proč si vymýšlí, prompt po částech, kam ho pustit a kam ne |
+| [2. AI Act bez paniky](https://evcaher.github.io/ai-lekce/ai-act.html) | Role podle nařízení, časová osa termínů, čtyři stupně rizika, zakázané praktiky, kdy se obsah musí označit |
+| [3. Chat, asistent, agent](https://evcaher.github.io/ai-lekce/ai-nastroje.html) | Rozdíl mezi chatem, asistentem a agentem, čtyři velké nástroje, zdarma vs. placené vs. firemní, lokální AI |
 
-Lekce o AI Actu obsahuje konkrétní termíny a odkazuje na stav k říjnu 2026. Nařízení se mění — před dalším školením si ověřte, jestli platí pořád.
+Druhá a třetí lekce obsahují údaje s trvanlivostí — termíny z AI Actu a tarify nástrojů. Obě uvádějí, ke kterému datu platí. Před dalším školením si ověřte, jestli pořád sedí.
 
 Na konkrétní krok se dá odkázat kotvou — `#k1` až `#k6`. Hodí se, když chcete po školení poslat odkaz na jedno místo.
 

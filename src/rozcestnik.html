@@ -1,0 +1,153 @@
+<title>AI pro kancelář</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@300;600;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: úvodní strana série — hlavička, pod ní sloupec karet lekcí; barvu si každá karta nese svou vlastní */
+:root{
+  --bg:#F6F6F5; --surface:#FFFFFF; --sunk:#EDEEEC; --line:#D8DAD6;
+  --fg:#15191A; --muted:#565E60;
+  --accent:#36403F; --accent-soft:#E2E6E4;
+  --l1:#0E6B60; --l2:#36468F; --l3:#8C3A52;
+  --display:'Spectral',Georgia,'Times New Roman',serif;
+  --body:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101312; --surface:#191D1D; --sunk:#141817; --line:#2B3331;
+    --fg:#E8ECEA; --muted:#9AA5A3;
+    --accent:#C9D3D0; --accent-soft:#222A29;
+    --l1:#5AC8B7; --l2:#9BAEF0; --l3:#E39BB0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101312; --surface:#191D1D; --sunk:#141817; --line:#2B3331;
+  --fg:#E8ECEA; --muted:#9AA5A3;
+  --accent:#C9D3D0; --accent-soft:#222A29;
+  --l1:#5AC8B7; --l2:#9BAEF0; --l3:#E39BB0;
+  color-scheme: dark;
+}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 56px}
+
+.eyebrow{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(2.1rem,6vw,3.3rem);line-height:1.05;margin:.35rem 0 .6rem;text-wrap:balance;letter-spacing:-.015em}
+.lede{font-size:1.1rem;color:var(--muted);max-width:56ch;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:20px;font-size:.84rem;color:var(--muted)}
+.meta span{display:inline-flex;align-items:center;gap:7px}
+.dotmark{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none}
+
+.lekce{display:grid;gap:14px;margin:40px 0 0;list-style:none;padding:0}
+.karta{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex}
+.karta .pruh{width:5px;flex:none;background:var(--c)}
+.karta a.telo{display:grid;grid-template-columns:auto 1fr;gap:4px 18px;padding:20px 22px;text-decoration:none;color:inherit;flex:1;min-width:0}
+.karta a.telo:hover{background:var(--sunk)}
+.karta .cislo{font-family:var(--mono);font-size:.8rem;color:var(--c);font-weight:500;grid-row:1/span 3;padding-top:6px}
+.karta h2{font-family:var(--display);font-weight:600;font-size:1.45rem;line-height:1.2;margin:0;text-wrap:balance}
+.karta p{margin:.35rem 0 0;color:var(--muted);font-size:.96rem;max-width:58ch}
+.karta ul{margin:12px 0 0;padding-left:18px;font-size:.89rem;color:var(--muted);display:grid;gap:3px}
+.karta .radek{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-top:14px;font-size:.82rem;color:var(--muted)}
+.karta .delka{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.karta .jdi{color:var(--c);font-weight:500}
+@media (max-width:560px){
+  .karta a.telo{grid-template-columns:1fr;gap:0;padding:18px}
+  .karta .cislo{grid-row:auto;padding:0 0 6px}
+}
+
+.jak{margin:44px 0 0}
+.jak h3{font-family:var(--display);font-weight:600;font-size:1.3rem;margin:0 0 .5rem}
+.zpusoby{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:16px 0 0;list-style:none;padding:0}
+.zpusoby li{background:var(--sunk);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;min-width:0}
+.zpusoby b{display:block;font-size:.78rem;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin-bottom:5px}
+.zpusoby span{font-size:.92rem;color:var(--muted)}
+
+footer.sig{margin-top:46px;padding-top:18px;border-top:1px solid var(--line);font-size:.82rem;color:var(--muted);display:grid;gap:10px}
+footer.sig a{color:var(--accent)}
+.disc{border:1px solid var(--line);border-radius:var(--r);background:var(--sunk);padding:13px 15px;max-width:70ch;line-height:1.5}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Výukové materiály</p>
+  <h1>AI pro kancelář</h1>
+  <p class="lede">Tři interaktivní lekce pro lidi, kteří s umělou inteligencí pracují, ale nechtějí jí zasvětit kariéru. Každá se dá projít za čtvrt hodiny, klikáním a vlastním tempem.</p>
+  <div class="meta">
+    <span><i class="dotmark"></i>3 lekce, dohromady asi hodina</span>
+    <span><i class="dotmark"></i>Nic se neinstaluje</span>
+    <span><i class="dotmark"></i>Funguje i na mobilu</span>
+  </div>
+</header>
+
+<ol class="lekce">
+  <li class="karta" style="--c:var(--l1)">
+    <div class="pruh"></div>
+    <a class="telo" href="https://evcaher.github.io/ai-lekce/ai-zaklady.html">
+      <span class="cislo">01</span>
+      <h2>Základy AI pro kancelář</h2>
+      <div>
+        <p>Jak jazykový model vlastně skládá odpověď — a co z toho plyne pro každodenní práci.</p>
+        <ul>
+          <li>Proč si AI vymýšlí a jak to poznat</li>
+          <li>Prompt po částech: co funguje a co ne</li>
+          <li>Kam AI pustit a kam rozhodně ne</li>
+        </ul>
+        <div class="radek"><span class="delka">6 kroků · 15 min</span><span class="jdi">Otevřít lekci →</span></div>
+      </div>
+    </a>
+  </li>
+
+  <li class="karta" style="--c:var(--l2)">
+    <div class="pruh"></div>
+    <a class="telo" href="https://evcaher.github.io/ai-lekce/ai-act.html">
+      <span class="cislo">02</span>
+      <h2>AI Act bez paniky</h2>
+      <div>
+        <p>Co z evropského nařízení skutečně dopadá na běžnou kancelář a co je mediální šum.</p>
+        <ul>
+          <li>Časová osa termínů po novele z roku 2026</li>
+          <li>Čtyři stupně rizika na konkrétních situacích</li>
+          <li>Kdy se AI obsah musí označit — a kdy ne</li>
+        </ul>
+        <div class="radek"><span class="delka">6 kroků · 20 min</span><span class="jdi">Otevřít lekci →</span></div>
+      </div>
+    </a>
+  </li>
+
+  <li class="karta" style="--c:var(--l3)">
+    <div class="pruh"></div>
+    <a class="telo" href="https://evcaher.github.io/ai-lekce/ai-nastroje.html">
+      <span class="cislo">03</span>
+      <h2>Chat, asistent, agent</h2>
+      <div>
+        <p>Čím se liší nástroje, které všechny vypadají jako okýnko na psaní — a která verze je ta vaše.</p>
+        <ul>
+          <li>Copilot, ChatGPT, Gemini a Claude vedle sebe</li>
+          <li>Zdarma, placené, firemní: kde je skutečný rozdíl</li>
+          <li>Kdy má smysl provozovat AI u sebe na serveru</li>
+        </ul>
+        <div class="radek"><span class="delka">6 kroků · 20 min</span><span class="jdi">Otevřít lekci →</span></div>
+      </div>
+    </a>
+  </li>
+</ol>
+
+<section class="jak">
+  <h3>Jak to používat</h3>
+  <ul class="zpusoby">
+    <li><b>Po školení</b><span>Pošlete účastníkům odkaz. Projdou si to znovu v klidu a mají kam sáhnout, až na něco narazí.</span></li>
+    <li><b>Na školení</b><span>Promítněte a klikejte společně. Kvízy fungují jako hlasování — nechte lidi hádat nahlas.</span></li>
+    <li><b>Místo školení</b><span>Pro malý tým, kde se den na školení nevejde do kalendáře. Hodinu si každý najde sám.</span></li>
+  </ul>
+</section>
+
+<footer class="sig">
+  <p class="disc"><strong>Materiály jsou výukové, ne právní ani nákupní poradenství.</strong> Druhá lekce pracuje s termíny z AI Actu a třetí s cenami a tarify — obojí se mění. U každé je napsané, ke kterému datu platí.</p>
+  <p>Eva Hermanová — školení Microsoft Office, Microsoft 365 a AI nástrojů · <a href="https://github.com/EvcaHer/ai-lekce" target="_blank" rel="noopener">zdrojové soubory na GitHubu</a></p>
+</footer>
+</div>

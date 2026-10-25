@@ -1,0 +1,575 @@
+<title>Chat, asistent, agent</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@300;600;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: stejná kostra jako předchozí lekce (rail vlevo, sloupec max 68ch), akcent vínový */
+:root{
+  --bg:#F7F5F6; --surface:#FFFFFF; --sunk:#EFECEE; --line:#DDD7DA;
+  --fg:#1A1518; --muted:#5F545A;
+  --accent:#8C3A52; --accent-soft:#F1DFE4;
+  --warn:#8F5406; --warn-soft:#F6E7D1;
+  --bad:#8B2E25; --bad-soft:#F4DDD9;
+  --display:'Spectral',Georgia,'Times New Roman',serif;
+  --body:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#151012; --surface:#1E181B; --sunk:#191315; --line:#342A2E;
+    --fg:#EFE8EB; --muted:#A99BA1;
+    --accent:#E39BB0; --accent-soft:#3A2129;
+    --warn:#DFA55C; --warn-soft:#332618;
+    --bad:#E4897C; --bad-soft:#331F1C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#151012; --surface:#1E181B; --sunk:#191315; --line:#342A2E;
+  --fg:#EFE8EB; --muted:#A99BA1;
+  --accent:#E39BB0; --accent-soft:#3A2129;
+  --warn:#DFA55C; --warn-soft:#332618;
+  --bad:#E4897C; --bad-soft:#331F1C;
+  color-scheme: dark;
+}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1060px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 56px}
+
+header .eyebrow{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(1.9rem,5vw,2.9rem);line-height:1.1;margin:.3rem 0 .5rem;text-wrap:balance;letter-spacing:-.01em}
+.lede{font-size:1.06rem;color:var(--muted);max-width:60ch;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:18px;font-size:.84rem;color:var(--muted)}
+.meta span{display:inline-flex;align-items:center;gap:7px}
+.dotmark{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none}
+.bar{height:3px;background:var(--line);border-radius:2px;margin:22px 0 0;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);width:16.6%;transition:width .35s ease}
+
+.grid{display:grid;grid-template-columns:216px 1fr;gap:34px;margin-top:30px;align-items:start}
+.grid>*{min-width:0}
+@media (max-width:820px){.grid{grid-template-columns:1fr;gap:20px}}
+
+nav.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;position:sticky;top:env(safe-area-inset-top,0px)}
+@media (max-width:820px){nav.rail ol{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:6px;position:static;scrollbar-width:thin}}
+.chip{appearance:none;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:var(--r);
+  padding:9px 11px;font:inherit;font-size:.88rem;color:var(--muted);cursor:pointer;display:flex;gap:10px;align-items:baseline;min-width:0}
+.chip:hover{background:var(--sunk);color:var(--fg)}
+.chip b{font-family:var(--mono);font-size:.76rem;font-weight:500;color:var(--accent);flex:none}
+.chip[aria-current="true"]{background:var(--surface);border-color:var(--line);color:var(--fg);font-weight:500}
+@media (max-width:820px){.chip{width:auto;white-space:nowrap}.chip span{display:none}.chip[aria-current="true"] span{display:inline}}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(20px,3.4vw,34px);min-width:0}
+.step h2{font-family:var(--display);font-weight:600;font-size:clamp(1.4rem,3.2vw,1.85rem);line-height:1.2;margin:0 0 .45rem;text-wrap:balance}
+.step h3{font-family:var(--display);font-weight:600;font-size:1.18rem;margin:30px 0 .3rem}
+.step p{max-width:66ch}
+.step p:first-of-type{margin-top:0}
+.kicker{font-family:var(--mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 .7rem}
+.note{font-size:.86rem;color:var(--muted);border-left:2px solid var(--line);padding-left:13px;margin:18px 0 0;max-width:62ch}
+.pull{font-family:var(--display);font-size:1.12rem;line-height:1.45;color:var(--fg);margin:22px 0 0;max-width:56ch}
+.step[hidden]{display:none!important}
+.anim{animation:in .3s ease both}
+@keyframes in{from{opacity:.35;transform:translateY(5px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.anim{animation:none}.bar>i{transition:none}}
+
+/* tři úrovně */
+.urovne{display:grid;gap:10px;margin:22px 0 0}
+.uroven{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:var(--r);background:var(--sunk);padding:15px 17px}
+.uroven h4{margin:0 0 .25rem;font-size:1.02rem;font-weight:600;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.uroven h4 em{font-style:normal;font-family:var(--mono);font-size:.72rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.uroven p{margin:0;font-size:.95rem;color:var(--muted);max-width:62ch}
+.uroven .kdo{margin-top:9px;font-size:.88rem;color:var(--fg)}
+.uroven .kdo b{color:var(--accent)}
+
+/* kvíz */
+.kviz{display:grid;gap:14px;margin:22px 0 0}
+.sit{border:1px solid var(--line);border-radius:var(--r);background:var(--sunk);padding:15px 16px}
+.sit .q{font-weight:500;margin:0 0 11px;line-height:1.45}
+.sit .q em{font-style:normal;font-family:var(--mono);font-size:.74rem;color:var(--muted);display:block;margin-bottom:5px;letter-spacing:.06em;text-transform:uppercase}
+.sit .row{display:flex;flex-wrap:wrap;gap:7px}
+.sit button{appearance:none;font:inherit;font-size:.92rem;cursor:pointer;background:var(--surface);border:1px solid var(--line);
+  border-radius:999px;padding:7px 14px;color:var(--fg)}
+.sit button:hover{border-color:var(--accent)}
+.sit button.pick-ok{background:var(--accent-soft);border-color:var(--accent);color:var(--fg);font-weight:500}
+.sit button.pick-bad{background:var(--bad-soft);border-color:var(--bad);color:var(--fg)}
+.sit .fb{font-size:.92rem;margin:12px 0 0;padding-left:13px;border-left:2px solid var(--accent);max-width:62ch}
+.sit .fb.no{border-color:var(--bad)}
+
+/* karty nástrojů */
+.nastroje{display:grid;gap:10px;margin:22px 0 0}
+.nas{border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.nas>button{appearance:none;width:100%;background:var(--surface);border:0;font:inherit;text-align:left;cursor:pointer;color:var(--fg);
+  padding:14px 16px;display:flex;gap:12px;align-items:baseline;min-width:0}
+.nas>button:hover{background:var(--sunk)}
+.nas .jm{font-weight:600;flex:none}
+.nas .kde{flex:1;min-width:0;font-size:.89rem;color:var(--muted)}
+.nas .sign{font-family:var(--mono);font-size:.78rem;color:var(--accent);flex:none}
+.nas .det{padding:0 16px 15px;display:grid;gap:10px}
+.nas dl{margin:0;display:grid;gap:3px}
+.nas dt{font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.nas dd{margin:0;font-size:.93rem;color:var(--muted);max-width:62ch}
+
+/* tabulky */
+.tab{width:100%;border-collapse:collapse;margin:20px 0 0;font-size:.92rem}
+.tab th,.tab td{text-align:left;padding:10px 12px 10px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.tab th{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tab td:first-child{font-weight:500;padding-right:18px}
+.tabwrap{overflow-x:auto;margin:20px 0 0}
+.tabwrap .tab{margin:0;min-width:430px}
+
+/* rozbalovací seznam */
+.myths{display:grid;gap:10px;margin:22px 0 0}
+.myth{border:1px solid var(--line);border-radius:var(--r);background:var(--sunk);overflow:hidden}
+.myth>button{appearance:none;width:100%;background:none;border:0;font:inherit;text-align:left;padding:14px 16px;cursor:pointer;
+  display:flex;gap:12px;align-items:flex-start;color:var(--fg)}
+.myth>button:hover{background:var(--accent-soft)}
+.myth .q{flex:1;min-width:0;font-weight:500}
+.myth .sign{font-family:var(--mono);font-size:.78rem;color:var(--accent);flex:none;padding-top:2px}
+.myth .a{padding:0 16px 15px;font-size:.94rem;color:var(--muted);max-width:62ch}
+
+/* checklist */
+.rules{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:8px}
+.rules label{display:flex;gap:13px;align-items:flex-start;border:1px solid var(--line);border-radius:var(--r);
+  background:var(--surface);padding:13px 15px;cursor:pointer;line-height:1.45}
+.rules label:hover{background:var(--sunk)}
+.rules input{appearance:none;width:19px;height:19px;flex:none;margin:2px 0 0;border:1.5px solid var(--line);border-radius:5px;
+  background:var(--bg);cursor:pointer;position:relative}
+.rules input:checked{background:var(--accent);border-color:var(--accent)}
+.rules input:checked::after{content:"";position:absolute;left:5px;top:2px;width:5px;height:10px;border:solid var(--surface);
+  border-width:0 2px 2px 0;transform:rotate(42deg)}
+.rules input:checked~.txt{color:var(--muted)}
+.done{margin:20px 0 0;font-size:.92rem;color:var(--accent);font-weight:500}
+
+.foot{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-top:26px}
+.btns{display:flex;gap:9px}
+.btn{appearance:none;font:inherit;cursor:pointer;border-radius:8px;padding:10px 20px;border:1px solid var(--line);
+  background:var(--surface);color:var(--fg)}
+.btn:hover{background:var(--sunk)}
+.btn.main{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:500}
+.btn.main:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.4;cursor:default}
+.pos{font-family:var(--mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+footer.sig{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted);display:grid;gap:10px}
+footer.sig a{color:var(--accent)}
+.disc{border:1px solid var(--line);border-radius:var(--r);background:var(--sunk);padding:13px 15px;max-width:72ch;line-height:1.5}
+.serie{display:flex;flex-wrap:wrap;gap:6px 18px}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Výukový průvodce · 3. díl</p>
+  <h1>Chat, asistent, agent</h1>
+  <p class="lede">Čtyři nástroje, které vypadají jako stejné okýnko na psaní, se liší hlavně tím, kde sedí a co odtud vidí. A verze, kterou máte, rozhoduje o víc věcech než jen o ceně.</p>
+  <div class="meta">
+    <span><i class="dotmark"></i>6 kroků, asi 20 minut</span>
+    <span><i class="dotmark"></i>Stav k 25. 10. 2026</span>
+    <span><i class="dotmark"></i>Šipkami ← → se dá listovat</span>
+  </div>
+  <div class="bar"><i id="fill"></i></div>
+</header>
+
+<div class="grid">
+  <nav class="rail" aria-label="Kroky">
+    <ol>
+      <li><button class="chip" aria-current="true" data-go="0"><b>01</b><span>Tři úrovně</span></button></li>
+      <li><button class="chip" data-go="1"><b>02</b><span>Čtyři nástroje</span></button></li>
+      <li><button class="chip" data-go="2"><b>03</b><span>Zdarma a placené</span></button></li>
+      <li><button class="chip" data-go="3"><b>04</b><span>Osobní a firemní</span></button></li>
+      <li><button class="chip" data-go="4"><b>05</b><span>Lokální AI</span></button></li>
+      <li><button class="chip" data-go="5"><b>06</b><span>Jak si vybrat</span></button></li>
+    </ol>
+  </nav>
+
+  <div>
+  <main class="panel">
+
+    <!-- 1 -->
+    <section class="step" id="s0">
+      <p class="kicker">Krok 1 ze 6</p>
+      <h2>Chat, asistent, agent</h2>
+      <p>Tahle tři slova se v nabídkách používají skoro náhodně. Rozdíl mezi nimi přitom není v tom, jak je nástroj chytrý, ale ve dvou praktických věcech: <strong>co všechno vidí</strong> a <strong>kdo rozhoduje o jednotlivých krocích</strong>.</p>
+      <div class="urovne">
+        <div class="uroven">
+          <h4>Chat <em>okno na psaní</em></h4>
+          <p>Nevidí nic kromě toho, co mu sami vložíte. Vrátí text, se kterým pak něco uděláte vy — zkopírujete, upravíte, odešlete.</p>
+          <p class="kdo">Kroky určujete <b>vy</b>. Výstup kontrolujete <b>vy</b>, než ho použijete.</p>
+        </div>
+        <div class="uroven">
+          <h4>Asistent <em>sedí uvnitř aplikací</em></h4>
+          <p>Totéž, ale vidí vaše prostředí. Ve Wordu otevřený dokument, v Outlooku vlákno, v Teams zápis ze schůzky. Nemusíte nic vkládat — a právě proto ušetří nejvíc času.</p>
+          <p class="kdo">Kroky určujete <b>vy</b>. Návrh kontrolujete <b>vy</b>. Jen podklady si nachystá sám.</p>
+        </div>
+        <div class="uroven">
+          <h4>Agent <em>dostane cíl, ne úkol</em></h4>
+          <p>Řeknete, čeho chcete dosáhnout, a on si sám rozvrhne kroky: něco vyhledá, otevře víc aplikací, vytvoří soubor, případně ho odešle. Mezi kroky se nemusí ptát.</p>
+          <p class="kdo">Kroky si určuje <b>sám</b>. Vaše kontrola se posouvá dopředu — z „zkontroluju výstup“ na <b>„nastavím, co vůbec smí“</b>.</p>
+        </div>
+      </div>
+      <p class="pull">U chatu a asistenta řešíte kvalitu odpovědi. U agenta řešíte oprávnění. To je úplně jiná disciplína a patří k ní IT.</p>
+      <div class="kviz" id="q1"></div>
+    </section>
+
+    <!-- 2 -->
+    <section class="step" id="s1" hidden>
+      <p class="kicker">Krok 2 ze 6</p>
+      <h2>Čtyři velké nástroje</h2>
+      <p>Žádný z nich není objektivně nejlepší a srovnávací testy se každé dva měsíce přehazují. Co se nemění, je <strong>kde každý z nich sedí</strong> — a z toho plyne, na co se hodí.</p>
+      <div class="nastroje" id="nastroje"></div>
+      <p class="note">Pokud vaše firma jede na Microsoftu, volba je prakticky hotová — Copilot vidí vaše data, ostatní ne. Zajímavé je to až tam, kde nástroj používáte vedle toho, co už máte.</p>
+    </section>
+
+    <!-- 3 -->
+    <section class="step" id="s2" hidden>
+      <p class="kicker">Krok 3 ze 6</p>
+      <h2>Zdarma a placené</h2>
+      <p>Bezplatné verze nejsou ořezané náhodně. Krátí se přesně to, co stojí nejvíc výpočetního výkonu — a to je zrovna to, kvůli čemu by vám nástroj ušetřil čas.</p>
+      <div class="tabwrap">
+        <table class="tab">
+          <thead><tr><th>Co se liší</th><th>Zdarma</th><th>Placené</th></tr></thead>
+          <tbody>
+            <tr><td>Model</td><td>slabší nebo starší</td><td>nejnovější a nejsilnější</td></tr>
+            <tr><td>Limity</td><td>pár zpráv, pak se tiše přepne na slabší</td><td>vysoké, běžný uživatel na ně nenarazí</td></tr>
+            <tr><td>Soubory</td><td>omezeně nebo vůbec</td><td>dlouhé dokumenty, tabulky, obrázky</td></tr>
+            <tr><td>Paměť</td><td>většinou jen v rámci konverzace</td><td>napříč konverzacemi, dá se vypnout</td></tr>
+            <tr><td>Ve špičce</td><td>pomalé nebo nedostupné</td><td>přednost</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="pull">Nejčastější důvod, proč lidé po školení řeknou „zkoušel jsem to a je to blbé“: narazili na limit, nástroj se potichu přepnul na slabší model a oni si toho nevšimli.</p>
+      <p>Cenově se osobní placené tarify u všech čtyř nástrojů drží kolem dvaceti dolarů měsíčně, dražší varianty pro náročné uživatele jdou na pětinásobek i víc. Konkrétní čísla tady schválně neuvádím — mění se několikrát ročně a k ceníku je vždycky blíž oficiální stránka než jakákoli prezentace.</p>
+      <p class="note">Praktická poznámka pro firmy: tyhle služby se platí kartou v dolarech nebo eurech a faktura chodí ze zahraničí. U větších nasazení se to řeší přes partnera, ne přes firemní kartu v šuplíku.</p>
+    </section>
+
+    <!-- 4 -->
+    <section class="step" id="s3" hidden>
+      <p class="kicker">Krok 4 ze 6</p>
+      <h2>Osobní a firemní účet</h2>
+      <p>Tohle je ze všech rozdílů nejdůležitější a nejčastěji přehlížený. Placená verze <strong>sama o sobě soukromí nekupuje</strong>. Osobní tarif, byť placený, se pořád řídí spotřebitelskými podmínkami.</p>
+      <div class="tabwrap">
+        <table class="tab">
+          <thead><tr><th>Co řešíte</th><th>Osobní účet</th><th>Firemní účet</th></tr></thead>
+          <tbody>
+            <tr><td>Učí se model z vašich textů?</td><td>u některých služeb ano, dokud to nevypnete v nastavení</td><td>ne, a je to ve smlouvě</td></tr>
+            <tr><td>Smlouva o zpracování údajů</td><td>není</td><td>je — bez ní GDPR nevyřešíte</td></tr>
+            <tr><td>Kdo má přehled</td><td>nikdo</td><td>správce vidí, kdo nástroj používá</td></tr>
+            <tr><td>Odchod zaměstnance</td><td>účet si odnese</td><td>přístup se odebere</td></tr>
+            <tr><td>Kde data leží</td><td>jak kde</td><td>dá se vyžádat uložení v EU</td></tr>
+            <tr><td>Jak dlouho se uchovávají</td><td>často dlouho a bez vaší kontroly</td><td>nastavitelné</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="pull">Rozhodující otázka tedy nezní „platíme za to?“, ale „je ten účet firemní a máme k němu smlouvu?“.</p>
+      <div class="kviz" id="q2"></div>
+      <p class="note">Podmínky jednotlivých služeb se liší a mění. Tabulka ukazuje obvyklý vzorec, ne záruku — u konkrétního nástroje si nastavení ověřte v administraci a ve smlouvě.</p>
+    </section>
+
+    <!-- 5 -->
+    <section class="step" id="s4" hidden>
+      <p class="kicker">Krok 5 ze 6</p>
+      <h2>Lokální AI</h2>
+      <p>Model běží na vašem počítači nebo firemním serveru. Nic neodchází ven — žádný dotaz, žádný dokument. Zní to jako řešení všech obav o data a občas to tak i je.</p>
+      <h3>Jak to funguje</h3>
+      <p>Stáhnete si model jako soubor a spustíte ho programem, který se o něj stará. Dva nejčastější: <strong>Ollama</strong> (otevřený zdrojový kód, licence MIT) a <strong>LM Studio</strong> (zavřený program s grafickým oknem, zdarma — u firemního nasazení si licenci ověřte u výrobce). Uvnitř oba stojí na stejném enginu, takže při stejném modelu jedou podobně rychle. Liší se obsluhou, ne výkonem.</p>
+      <h3>Kdy to dává smysl</h3>
+      <div class="myths" id="kdy"></div>
+      <h3>Co to stojí</h3>
+      <div class="tabwrap">
+        <table class="tab">
+          <thead><tr><th>Položka</th><th>Realita</th></tr></thead>
+          <tbody>
+            <tr><td>Hardware</td><td>na 8 GB paměti rozjedete jen malé modely. LM Studio uvádí jako minimum 16 GB RAM a 4 GB paměti na grafické kartě.</td></tr>
+            <tr><td>Velikost modelu</td><td>model s 14 miliardami parametrů zabere v komprimované podobě kolem 9 GB a vejde se na jednu 16GB kartu. Dvojnásobně velký model už jich často potřebuje dvě.</td></tr>
+            <tr><td>Kvalita</td><td>malý model, který vám doma poběží, není náhrada za špičkový cloudový. Na shrnutí a přepisy stačí, na náročnější práci zaostává.</td></tr>
+            <tr><td>Víc uživatelů</td><td>Ollama je stavěná pro jednoho člověka. Pro tým se používají jiné nástroje a je to práce pro IT.</td></tr>
+            <tr><td>Provoz</td><td>aktualizace, zálohy, a když to v pátek přestane fungovat, není komu zavolat.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="pull">Pro běžnou kancelář to zatím není odpověď. Má to smysl tam, kde data opravdu nesmí ven — a tam se to řeší s IT oddělením, ne na školení.</p>
+      <p class="note">Jestli se vyplatí lokální provoz místo placené služby, se obecně říct nedá. Závisí to na tom, kolik toho denně zpracujete, proti jednorázové ceně hardwaru a času někoho, kdo to bude spravovat. Mezistupeň, který většině firem stačí, je firemní tarif s daty uloženými v EU.</p>
+    </section>
+
+    <!-- 6 -->
+    <section class="step" id="s5" hidden>
+      <p class="kicker">Krok 6 ze 6</p>
+      <h2>Jak si vybrat</h2>
+      <p>Výběr nástroje je ze tří čtvrtin daný tím, co už ve firmě máte. Zbytek rozhodnou čtyři otázky.</p>
+      <ul class="rules" id="rules"></ul>
+      <p class="done" id="doneMsg" hidden>Čtyři odpovědi a výběr se zúží na jednu nebo dvě možnosti.</p>
+      <h3>Co se mění a co ne</h3>
+      <div class="tabwrap">
+        <table class="tab">
+          <thead><tr><th>Mění se každé čtvrtletí</th><th>Nemění se</th></tr></thead>
+          <tbody>
+            <tr><td>ceny a názvy tarifů</td><td>rozdíl mezi osobním a firemním účtem</td></tr>
+            <tr><td>limity bezplatných verzí</td><td>že výstup musí někdo zkontrolovat</td></tr>
+            <tr><td>který model je zrovna nejlepší</td><td>že nástroj uvnitř vašich aplikací vidí víc než ten venku</td></tr>
+            <tr><td>názvy funkcí a režimů</td><td>že u agenta řešíte oprávnění, ne formulace</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Proto se vyplatí učit se princip, ne tlačítka. Tlačítka se do příštího školení přejmenují.</p>
+    </section>
+
+  </main>
+
+  <div class="foot">
+    <span class="pos" id="pos">Krok 1 / 6</span>
+    <div class="btns">
+      <button class="btn" id="prev" disabled>Zpět</button>
+      <button class="btn main" id="next">Další krok</button>
+    </div>
+  </div>
+  </div>
+</div>
+
+<footer class="sig">
+  <p class="disc"><strong>Ceny, tarify a názvy funkcí se mění několikrát ročně.</strong> Tenhle materiál je psaný ke stavu 25. 10. 2026 a schválně neuvádí konkrétní čísla tam, kde by za měsíc neplatila. Před nákupem se podívejte na oficiální ceník dodavatele.</p>
+  <p class="serie">
+    <a href="https://evcaher.github.io/ai-lekce/">Všechny lekce</a>
+    <a href="https://evcaher.github.io/ai-lekce/ai-act.html">← 2. AI Act bez paniky</a>
+  </p>
+  <p>Výukový materiál — Eva Hermanová</p>
+</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var steps = Array.prototype.slice.call(document.querySelectorAll('.step'));
+  var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+  var tokens = ['k1','k2','k3','k4','k5','k6'];
+  var cur = 0;
+
+  function show(i){
+    i = Math.max(0, Math.min(steps.length - 1, i));
+    cur = i;
+    steps.forEach(function(s, n){ s.hidden = n !== i; s.classList.remove('anim'); });
+    void steps[i].offsetWidth;
+    steps[i].classList.add('anim');
+    chips.forEach(function(c, n){ c.setAttribute('aria-current', n === i ? 'true' : 'false'); });
+    document.getElementById('fill').style.width = ((i + 1) / steps.length * 100) + '%';
+    document.getElementById('pos').textContent = 'Krok ' + (i + 1) + ' / ' + steps.length;
+    document.getElementById('prev').disabled = i === 0;
+    var nx = document.getElementById('next');
+    nx.disabled = i === steps.length - 1;
+    nx.textContent = i === steps.length - 1 ? 'Na konci' : 'Další krok';
+    try { history.replaceState(null, '', '#' + tokens[i]); } catch (e) {}
+  }
+  chips.forEach(function(c){ c.addEventListener('click', function(){ show(+c.dataset.go); }); });
+  document.getElementById('next').addEventListener('click', function(){ show(cur + 1); });
+  document.getElementById('prev').addEventListener('click', function(){ show(cur - 1); });
+  document.addEventListener('keydown', function(e){
+    if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+    if (e.key === 'ArrowRight') show(cur + 1);
+    if (e.key === 'ArrowLeft') show(cur - 1);
+  });
+  window.addEventListener('hashchange', function(){
+    var i = tokens.indexOf((location.hash || '').replace('#', ''));
+    if (i > -1 && i !== cur) show(i);
+  });
+
+  function akordeon(mount, data){
+    var w = document.getElementById(mount);
+    data.forEach(function(m){
+      var d = document.createElement('div');
+      d.className = 'myth';
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-expanded', 'false');
+      b.innerHTML = '<span class="q"></span><span class="sign">+</span>';
+      b.querySelector('.q').textContent = m[0];
+      var a = document.createElement('p');
+      a.className = 'a';
+      a.textContent = m[1];
+      a.hidden = true;
+      b.addEventListener('click', function(){
+        a.hidden = !a.hidden;
+        b.setAttribute('aria-expanded', String(!a.hidden));
+        b.querySelector('.sign').textContent = a.hidden ? '+' : '−';
+      });
+      d.appendChild(b); d.appendChild(a); w.appendChild(d);
+    });
+  }
+
+  function kviz(mount, items){
+    var w = document.getElementById(mount);
+    items.forEach(function(it){
+      var d = document.createElement('div');
+      d.className = 'sit';
+      var q = document.createElement('p');
+      q.className = 'q';
+      q.innerHTML = '<em></em><span></span>';
+      q.querySelector('em').textContent = it.stitek;
+      q.querySelector('span').textContent = it.text;
+      var row = document.createElement('div');
+      row.className = 'row';
+      var fb = document.createElement('p');
+      fb.className = 'fb';
+      fb.hidden = true;
+      it.opts.forEach(function(o){
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = o.label;
+        b.addEventListener('click', function(){
+          Array.prototype.forEach.call(row.querySelectorAll('button'), function(x){ x.className = ''; });
+          b.className = o.ok ? 'pick-ok' : 'pick-bad';
+          fb.textContent = o.why;
+          fb.className = 'fb' + (o.ok ? '' : ' no');
+          fb.hidden = false;
+        });
+        row.appendChild(b);
+      });
+      d.appendChild(q); d.appendChild(row); d.appendChild(fb); w.appendChild(d);
+    });
+  }
+
+  /* ---- krok 1 ---- */
+  var ur = ['Chat', 'Asistent', 'Agent'];
+  function ot1(text, spravna, duvody){
+    return { stitek: 'Co to je', text: text,
+      opts: ur.map(function(k, i){ return { label: k, ok: i === spravna, why: duvody[i] }; }) };
+  }
+  kviz('q1', [
+    ot1('Otevřu web ChatGPT, vložím text smlouvy a nechám si ho shrnout.', 0,
+      ['Ano. Vy vkládáte podklad, vy čtete výsledek, vy s ním dál pracujete. Nic sám nevidí a nic sám neudělá.',
+       'Ne. Asistent by ten dokument viděl sám, bez vkládání. Tady jste mu ho museli donést.',
+       'Ne. Agent by si smlouvu sám našel a něco s ní udělal. Tady jen odpovídá.']),
+    ot1('Ve Wordu kliknu na Copilota a nechám si přepsat odstavec, který mám zrovna otevřený.', 1,
+      ['Skoro — ale ne. Rozdíl je v tom, že nic nevkládáte: nástroj vidí dokument sám od sebe.',
+       'Ano. Sedí uvnitř aplikace, vidí váš kontext a vrací návrh, který schválíte. Tady je dnes největší úspora času.',
+       'Ne. Nerozhoduje o krocích, jen navrhuje a čeká na vás.']),
+    ot1('Zadám „připrav podklady k pondělní poradě“ a nástroj sám projde poštu, najde přílohy, vyrobí shrnutí a uloží ho do složky.', 2,
+      ['Ne. Chat by vám nanejvýš poradil, jak na to.',
+       'Blízko, ale ne. Asistent by pomohl s každým krokem zvlášť, kdybyste o něj požádali.',
+       'Ano. Dostal cíl, ne úkol, a posloupnost kroků si určil sám. Tady začíná otázka, co všechno má povolené.']),
+    ot1('Chatbot na webu banky mi odpoví na dotaz k otevírací době.', 0,
+      ['Ano. Odpovídá na zprávy, nic dalšího nedělá. Většina toho, co se prodává jako „agent“, je ve skutečnosti tohle.',
+       'Ne. Nevidí vaše prostředí ani vaše dokumenty.',
+       'Ne — a tohle je nejčastější marketingová záměna. Dokud nástroj jen odpovídá, není to agent.'])
+  ]);
+
+  /* ---- krok 2 ---- */
+  var nastroje = [
+    { jm: 'Microsoft Copilot', kde: 'uvnitř Microsoft 365',
+      silne: 'Vidí vaše firemní dokumenty, poštu a schůzky, takže nemusíte nic vkládat — a respektuje přitom oprávnění, která už máte nastavená. Pro firmu, která jede na Microsoftu, je to nejkratší cesta od zadání k výsledku.',
+      pozor: 'Kvalita stojí a padá s pořádkem v datech. Když je na SharePointu chaos, Copilot ho najde a poctivě vám ho vrátí. A pozor na název: „Copilot“ se jmenuje nejmíň pět různých věcí a bezplatný Copilot na webu je něco úplně jiného než ten v Microsoft 365. Vždycky si ujasněte, o kterém se bavíte.' },
+    { jm: 'ChatGPT', kde: 'samostatně, mimo vaše aplikace',
+      silne: 'Nejširší ekosystém a nejvíc hotových návodů v češtině. Umí toho hodně vedle psaní — práci s obrázky, hlasem, rozbor nahraných souborů. Když hledáte, co všechno jde, začíná se tady.',
+      pozor: 'Vaše firemní data nevidí, musíte mu je vložit — a tím vzniká otázka, kam se dostanou. U osobního účtu odpověď nebude taková, jakou by chtěl slyšet právník.' },
+    { jm: 'Google Gemini', kde: 'uvnitř Google Workspace a v Androidu',
+      silne: 'Pro firmu na Googlu stejná logika jako Copilot u Microsoftu — vidí Gmail, Dokumenty a Disk. Zvládá velmi dlouhé podklady najednou.',
+      pozor: 'V českých firmách je Workspace výrazně méně rozšířený než Microsoft 365, takže většině týmů tahle cesta stejně nevyjde. Na soukromém telefonu je to jiný příběh.' },
+    { jm: 'Claude', kde: 'samostatně, mimo vaše aplikace',
+      silne: 'Nejlepší z téhle čtveřice na dlouhé texty a rozsáhlé podklady — drží tón, strukturu a styl i přes mnoho stran. Oblíbený tam, kde se píše a rediguje.',
+      pozor: 'Do kancelářských aplikací se zapojuje méně než Copilot, takže podklady mu zpravidla musíte dodat sami. Stejná otázka jako u ChatGPT: kam se ta data dostanou.' }
+  ];
+  var nw = document.getElementById('nastroje');
+  nastroje.forEach(function(n){
+    var d = document.createElement('div');
+    d.className = 'nas';
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('aria-expanded', 'false');
+    b.innerHTML = '<span class="jm"></span><span class="kde"></span><span class="sign">+</span>';
+    b.querySelector('.jm').textContent = n.jm;
+    b.querySelector('.kde').textContent = n.kde;
+    var det = document.createElement('div');
+    det.className = 'det';
+    det.hidden = true;
+    [['V čem je silný', n.silne], ['Na co pozor', n.pozor]].forEach(function(p){
+      var dl = document.createElement('dl');
+      var dt = document.createElement('dt');
+      dt.textContent = p[0];
+      var dd = document.createElement('dd');
+      dd.textContent = p[1];
+      dl.appendChild(dt); dl.appendChild(dd); det.appendChild(dl);
+    });
+    b.addEventListener('click', function(){
+      det.hidden = !det.hidden;
+      b.setAttribute('aria-expanded', String(!det.hidden));
+      b.querySelector('.sign').textContent = det.hidden ? '+' : '−';
+    });
+    d.appendChild(b); d.appendChild(det); nw.appendChild(d);
+  });
+
+  /* ---- krok 4 ---- */
+  kviz('q2', [
+    { stitek: 'Smím to tam vložit?', text: 'Seznam klientů se jmény a telefony, do ChatGPT na vlastním placeném účtu.',
+      opts: [
+        { label: 'Ano, platím si to', ok: false, why: 'Ne. Placený osobní účet pořád běží na spotřebitelských podmínkách. Bez smlouvy o zpracování osobních údajů je to z pohledu GDPR problém bez ohledu na to, kolik platíte.' },
+        { label: 'Ne', ok: true, why: 'Správně. Osobní účet, byť placený, nemá smlouvu o zpracování údajů ani záruky o uložení dat. Tohle patří do firemního nástroje, nebo nikam.' },
+        { label: 'Když to vypnu v nastavení', ok: false, why: 'Vypnutí trénování pomůže, ale nenahradí smlouvu. Zpracováváte osobní údaje klientů na službě, se kterou firma nemá nic podepsané.' }
+      ]},
+    { stitek: 'Smím to tam vložit?', text: 'Tentýž seznam do Copilota na firemním účtu Microsoft 365, který má firma nasazený.',
+      opts: [
+        { label: 'Ano', ok: true, why: 'Ano, pokud firma Copilota skutečně nasadila a vy pracujete s daty, ke kterým máte i jinak přístup. Firemní tarif má smlouvu a data se nepoužívají k trénování.' },
+        { label: 'Ne, nikdy', ok: false, why: 'To by znamenalo nepoužívat AI na nic z práce. Firemní nasazení existuje právě proto, aby se s firemními daty pracovat dalo.' },
+        { label: 'Jen se souhlasem klientů', ok: false, why: 'Souhlas klientů tady obvykle není to, co rozhoduje — firma data už zpracovává a Copilot je nástroj uvnitř jejího prostředí. Řiďte se interním pravidlem firmy.' }
+      ]},
+    { stitek: 'Smím to tam vložit?', text: 'Veřejně dostupná tisková zpráva konkurence, do čehokoli.',
+      opts: [
+        { label: 'Ano', ok: true, why: 'Ano. Veřejný text žádnou ochranu nepotřebuje. Tady je zbytečné se zdržovat.' },
+        { label: 'Ne', ok: false, why: 'Není důvod. Co je veřejné, není čím riskovat.' },
+        { label: 'Záleží na nástroji', ok: false, why: 'U veřejného textu opravdu nezáleží. Ohlídejte si spíš to, co si z odpovědi odnesete — zdroje si ověřte.' }
+      ]},
+    { stitek: 'Smím to tam vložit?', text: 'Nepodepsaná verze smlouvy s dodavatelem, do bezplatného účtu, abych si ji nechala shrnout.',
+      opts: [
+        { label: 'Ano, je to jen shrnutí', ok: false, why: 'Shrnutí vyžaduje vložení celého textu. Nepodepsaná smlouva je obchodní tajemství a bezplatný účet je ze všech variant ten nejhůř ošetřený.' },
+        { label: 'Ne', ok: true, why: 'Správně. Obchodní podmínky a ceny patří mezi to, co se ven nedává. Pokud shrnutí potřebujete, udělejte ho ve firemním nástroji.' },
+        { label: 'Když smažu jména', ok: false, why: 'Anonymizace pomáhá u osobních údajů, ale obchodní podmínky a ceny zůstanou čitelné i bez jmen. Problém to neřeší.' }
+      ]}
+  ]);
+
+  /* ---- krok 5 ---- */
+  akordeon('kdy', [
+    ['Data, která nesmí ven ani se smlouvou',
+     'Zdravotnická dokumentace, advokátní spisy, utajované informace, vývoj, na kterém stojí firma. Všude tam, kde by i smluvně ošetřené odeslání do cloudu bylo nepřijatelné.'],
+    ['Provoz bez internetu nebo v odděleném prostředí',
+     'Výroba, laboratoře, pracoviště bez připojení ven. Lokální model je někdy jediná varianta, která tam vůbec připadá v úvahu.'],
+    ['Velké objemy stále stejné práce',
+     'Když denně zpracováváte tisíce dokumentů, může být vlastní hardware levnější než placení za každý dotaz. Spočítat se to musí konkrétně, obecné číslo neexistuje.'],
+    ['Kdy to naopak smysl nedává',
+     'Běžná kancelář, která chce rychleji psát e-maily a shrnovat schůzky. Pořídíte slabší nástroj, přidáte si starost se správou a ušetříte méně, než stojí hardware a čas.']
+  ]);
+
+  /* ---- krok 6 ---- */
+  var rules = [
+    'Kde mám data, se kterými chci pracovat? Microsoft 365, Google, nebo nikde konkrétně?',
+    'Je to firemní použití? Pokud ano, mám firemní účet se smlouvou — ne jen placený osobní?',
+    'Stačí mi, že nástroj něco navrhne, nebo potřebuju, aby to sám i udělal?',
+    'Je mezi daty něco, co nesmí ven ani se smlouvou?'
+  ];
+  var rw = document.getElementById('rules'), dm = document.getElementById('doneMsg');
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem('ainastroje-rules') || '{}') || {}; } catch (e) { saved = {}; }
+  function checkDone(){
+    var all = Array.prototype.slice.call(rw.querySelectorAll('input')).every(function(i){ return i.checked; });
+    dm.hidden = !all;
+  }
+  rules.forEach(function(r, i){
+    var li = document.createElement('li');
+    var lab = document.createElement('label');
+    var inp = document.createElement('input');
+    inp.type = 'checkbox';
+    inp.id = 'nastroje-rule' + i;
+    inp.checked = !!saved['r' + i];
+    var sp = document.createElement('span');
+    sp.className = 'txt';
+    sp.textContent = r;
+    inp.addEventListener('change', function(){
+      saved['r' + i] = inp.checked;
+      try { localStorage.setItem('ainastroje-rules', JSON.stringify(saved)); } catch (e) {}
+      checkDone();
+    });
+    lab.appendChild(inp); lab.appendChild(sp); li.appendChild(lab); rw.appendChild(li);
+  });
+  checkDone();
+
+  var h = (location.hash || '').replace('#', '');
+  var ix = tokens.indexOf(h);
+  show(ix > -1 ? ix : 0);
+})();
+</script>
