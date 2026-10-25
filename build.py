@@ -25,6 +25,7 @@ SKELET = """<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{titulek}</title>
 <meta name="description" content="{popis}">
 <meta name="author" content="Eva Hermanová">
 <meta property="og:type" content="website">
