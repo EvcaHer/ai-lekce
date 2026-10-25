@@ -14,6 +14,7 @@ Rozcestník se všemi lekcemi: **https://evcaher.github.io/ai-lekce/**
 | [2. AI Act bez paniky](https://evcaher.github.io/ai-lekce/ai-act.html) | Role podle nařízení, časová osa termínů, čtyři stupně rizika, zakázané praktiky, kdy se obsah musí označit |
 | [3. Chat, asistent, agent](https://evcaher.github.io/ai-lekce/ai-nastroje.html) | Rozdíl mezi chatem, asistentem a agentem, čtyři velké nástroje, zdarma vs. placené vs. firemní, lokální AI |
 | [4. Hlas, video, obrázek](https://evcaher.github.io/ai-lekce/ai-media.html) | Specializované aplikace na hlas, video a grafiku, profesionální portréty, prompty na obrázky, rozcestník nástrojů |
+| [5. Vibe coding](https://evcaher.github.io/ai-lekce/vibe-coding.html) | Claude Artifacts, Lovable, Macaly a GitHub Copilot, co si tím v kanceláři uděláte, bezpečnostní rizika, kdy zapojit IT |
 
 Druhá a třetí lekce obsahují údaje s trvanlivostí — termíny z AI Actu a tarify nástrojů. Obě uvádějí, ke kterému datu platí. Před dalším školením si ověřte, jestli pořád sedí.
 

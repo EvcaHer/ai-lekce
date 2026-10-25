@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vibe coding</title>
+<meta name="description" content="Tvorba aplikací popisem místo programování: Claude Artifacts, Lovable, Macaly a GitHub Copilot, co si tím uděláte a kde to narazí.">
+<meta name="author" content="Eva Hermanová">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Vibe coding">
+<meta property="og:description" content="Tvorba aplikací popisem místo programování: Claude Artifacts, Lovable, Macaly a GitHub Copilot, co si tím uděláte a kde to narazí.">
+<meta property="og:locale" content="cs_CZ">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@300;600;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: stejná kostra jako ostatní lekce (rail vlevo, sloupec max 68ch), akcent fialový */
+:root{
+  --bg:#F7F5F9; --surface:#FFFFFF; --sunk:#EFEBF3; --line:#DCD5E3;
+  --fg:#17141C; --muted:#5B5366;
+  --accent:#6A3E96; --accent-soft:#E8DDF4;
+  --warn:#8F5406; --warn-soft:#F6E7D1;
+  --bad:#8B2E25; --bad-soft:#F4DDD9;
+  --display:'Spectral',Georgia,'Times New Roman',serif;
+  --body:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121018; --surface:#1C1824; --sunk:#17131E; --line:#332B3F;
+    --fg:#EDE8F3; --muted:#A79EB5;
+    --accent:#BFA2E8; --accent-soft:#2B2140;
+    --warn:#DFA55C; --warn-soft:#332618;
+    --bad:#E4897C; --bad-soft:#331F1C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121018; --surface:#1C1824; --sunk:#17131E; --line:#332B3F;
+  --fg:#EDE8F3; --muted:#A79EB5;
+  --accent:#BFA2E8; --accent-soft:#2B2140;
+  --warn:#DFA55C; --warn-soft:#332618;
+  --bad:#E4897C; --bad-soft:#331F1C;
+  color-scheme: dark;
+}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1060px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 56px}
+
+header .eyebrow{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(1.9rem,5vw,2.9rem);line-height:1.1;margin:.3rem 0 .5rem;text-wrap:balance;letter-spacing:-.01em}
+.lede{font-size:1.06rem;color:var(--muted);max-width:60ch;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:18px;font-size:.84rem;color:var(--muted)}
+.meta span{display:inline-flex;align-items:center;gap:7px}
+.dotmark{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none}
+.bar{height:3px;background:var(--line);border-radius:2px;margin:22px 0 0;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);width:16.6%;transition:width .35s ease}
+
+.grid{display:grid;grid-template-columns:216px 1fr;gap:34px;margin-top:30px;align-items:start}
+.grid>*{min-width:0}
+@media (max-width:820px){.grid{grid-template-columns:1fr;gap:20px}}
+
+nav.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;position:sticky;top:env(safe-area-inset-top,0px)}
+@media (max-width:820px){nav.rail ol{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:6px;position:static;scrollbar-width:thin}}
+.chip{appearance:none;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:var(--r);
+  padding:9px 11px;font:inherit;font-size:.88rem;color:var(--muted);cursor:pointer;display:flex;gap:10px;align-items:baseline;min-width:0}
+.chip:hover{background:var(--sunk);color:var(--fg)}
+.chip b{font-family:var(--mono);font-size:.76rem;font-weight:500;color:var(--accent);flex:none}
+.chip[aria-current="true"]{background:var(--surface);border-color:var(--line);color:var(--fg);font-weight:500}
+@media (max-width:820px){.chip{width:auto;white-space:nowrap}.chip span{display:none}.chip[aria-current="true"] span{display:inline}}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(20px,3.4vw,34px);min-width:0}
+.step h2{font-family:var(--display);font-weight:600;font-size:clamp(1.4rem,3.2vw,1.85rem);line-height:1.2;margin:0 0 .45rem;text-wrap:balance}
+.step h3{font-family:var(--display);font-weight:600;font-size:1.18rem;margin:30px 0 .3rem}
+.step p{max-width:66ch}
+.step p:first-of-type{margin-top:0}
+.step a{color:var(--accent)}
+.kicker{font-family:var(--mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 .7rem}
+.note{font-size:.86rem;color:var(--muted);border-left:2px solid var(--line);padding-left:13px;margin:18px 0 0;max-width:62ch}
+.pull{font-family:var(--display);font-size:1.12rem;line-height:1.45;color:var(--fg);margin:22px 0 0;max-width:56ch}
+.step[hidden]{display:none!important}
+.anim{animation:in .3s ease both}
+@keyframes in{from{opacity:.35;transform:translateY(5px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.anim{animation:none}.bar>i{transition:none}}
+
+/* rozbalovací karty */
+.uziti{display:grid;gap:10px;margin:22px 0 0}
+.u{border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.u>button{appearance:none;width:100%;background:var(--surface);border:0;font:inherit;text-align:left;cursor:pointer;color:var(--fg);
+  padding:14px 16px;display:flex;gap:12px;align-items:baseline;min-width:0}
+.u>button:hover{background:var(--sunk)}
+.u .co{font-weight:600;flex:none}
+.u .cim{flex:1;min-width:0;font-size:.89rem;color:var(--muted)}
+.u .sign{font-family:var(--mono);font-size:.78rem;color:var(--accent);flex:none}
+.u .det{padding:0 16px 15px;display:grid;gap:10px}
+.u dl{margin:0;display:grid;gap:3px}
+.u dt{font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.u dd{margin:0;font-size:.93rem;color:var(--muted);max-width:62ch}
+.u dd a{color:var(--accent)}
+
+/* kvíz */
+.kviz{display:grid;gap:14px;margin:22px 0 0}
+.sit{border:1px solid var(--line);border-radius:var(--r);background:var(--sunk);padding:15px 16px}
+.sit .q{font-weight:500;margin:0 0 11px;line-height:1.45}
+.sit .q em{font-style:normal;font-family:var(--mono);font-size:.74rem;color:var(--muted);display:block;margin-bottom:5px;letter-spacing:.06em;text-transform:uppercase}
+.sit .row{display:flex;flex-wrap:wrap;gap:7px}
+.sit button{appearance:none;font:inherit;font-size:.92rem;cursor:pointer;background:var(--surface);border:1px solid var(--line);
+  border-radius:999px;padding:7px 14px;color:var(--fg)}
+.sit button:hover{border-color:var(--accent)}
+.sit button.pick-ok{background:var(--accent-soft);border-color:var(--accent);color:var(--fg);font-weight:500}
+.sit button.pick-bad{background:var(--bad-soft);border-color:var(--bad);color:var(--fg)}
+.sit .fb{font-size:.92rem;margin:12px 0 0;padding-left:13px;border-left:2px solid var(--accent);max-width:62ch}
+.sit .fb.no{border-color:var(--bad)}
+
+/* skládačka zadání */
+.parts{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 16px}
+.part{appearance:none;font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--muted);
+  border-radius:999px;padding:7px 14px;display:inline-flex;gap:8px;align-items:center}
+.part[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--fg);font-weight:500}
+.part em{font-style:normal;font-family:var(--mono);font-size:.74rem;opacity:.75}
+pre.prompt{font-family:var(--mono);font-size:.85rem;line-height:1.7;background:var(--sunk);border:1px solid var(--line);
+  border-radius:var(--r);padding:16px 18px;margin:0;white-space:pre-wrap;word-break:break-word;min-height:7em}
+pre.prompt .off{color:var(--muted);opacity:.45}
+.count{font-size:.84rem;color:var(--muted);margin:12px 0 0}
+
+/* rizika */
+.rizika{display:grid;gap:9px;margin:22px 0 0}
+.riz{border:1px solid var(--line);border-left:4px solid var(--bad);border-radius:var(--r);background:var(--sunk);padding:14px 16px}
+.riz h4{margin:0 0 .3rem;font-size:1rem;font-weight:600}
+.riz p{margin:0;font-size:.93rem;color:var(--muted);max-width:62ch}
+
+/* tabulky */
+.tab{width:100%;border-collapse:collapse;margin:0;font-size:.92rem}
+.tab th,.tab td{text-align:left;padding:10px 12px 10px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.tab th{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tab td:first-child{font-weight:500;padding-right:18px}
+.tab a{color:var(--accent)}
+.tabwrap{overflow-x:auto;margin:20px 0 0}
+.tabwrap .tab{min-width:430px}
+
+/* checklist */
+.rules{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:8px}
+.rules label{display:flex;gap:13px;align-items:flex-start;border:1px solid var(--line);border-radius:var(--r);
+  background:var(--surface);padding:13px 15px;cursor:pointer;line-height:1.45}
+.rules label:hover{background:var(--sunk)}
+.rules input{appearance:none;width:19px;height:19px;flex:none;margin:2px 0 0;border:1.5px solid var(--line);border-radius:5px;
+  background:var(--bg);cursor:pointer;position:relative}
+.rules input:checked{background:var(--accent);border-color:var(--accent)}
+.rules input:checked::after{content:"";position:absolute;left:5px;top:2px;width:5px;height:10px;border:solid var(--surface);
+  border-width:0 2px 2px 0;transform:rotate(42deg)}
+.rules input:checked~.txt{color:var(--muted)}
+.done{margin:20px 0 0;font-size:.92rem;color:var(--accent);font-weight:500}
+
+.foot{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-top:26px}
+.btns{display:flex;gap:9px}
+.btn{appearance:none;font:inherit;cursor:pointer;border-radius:8px;padding:10px 20px;border:1px solid var(--line);
+  background:var(--surface);color:var(--fg)}
+.btn:hover{background:var(--sunk)}
+.btn.main{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:500}
+.btn.main:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.4;cursor:default}
+.pos{font-family:var(--mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+footer.sig{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted);display:grid;gap:10px}
+footer.sig a{color:var(--accent)}
+.disc{border:1px solid var(--line);border-radius:var(--r);background:var(--sunk);padding:13px 15px;max-width:72ch;line-height:1.5}
+.serie{display:flex;flex-wrap:wrap;gap:6px 18px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Výukový průvodce · 5. díl</p>
+  <h1>Vibe coding</h1>
+  <p class="lede">Popíšete slovy, co chcete, a za minutu to běží. Na prototyp a na vlastní pomůcku skvělé. Jakmile do toho vstoupí firemní data a druhý uživatel, je to normální IT projekt — jen o tom zatím nikdo neví.</p>
+  <div class="meta">
+    <span><i class="dotmark"></i>6 kroků, asi 25 minut</span>
+    <span><i class="dotmark"></i>Stav k 25. 10. 2026</span>
+    <span><i class="dotmark"></i>Šipkami ← → se dá listovat</span>
+  </div>
+  <div class="bar"><i id="fill"></i></div>
+</header>
+
+<div class="grid">
+  <nav class="rail" aria-label="Kroky">
+    <ol>
+      <li><button class="chip" aria-current="true" data-go="0"><b>01</b><span>Co to je</span></button></li>
+      <li><button class="chip" data-go="1"><b>02</b><span>Čtyři prostředí</span></button></li>
+      <li><button class="chip" data-go="2"><b>03</b><span>Co si tím uděláte</span></button></li>
+      <li><button class="chip" data-go="3"><b>04</b><span>Kde to narazí</span></button></li>
+      <li><button class="chip" data-go="4"><b>05</b><span>Jak zadat</span></button></li>
+      <li><button class="chip" data-go="5"><b>06</b><span>Kdy do IT</span></button></li>
+    </ol>
+  </nav>
+
+  <div>
+  <main class="panel">
+
+    <!-- 1 -->
+    <section class="step" id="s0">
+      <p class="kicker">Krok 1 ze 6</p>
+      <h2>Co je vibe coding</h2>
+      <p>Napíšete běžnou češtinou, co má program dělat. Nástroj napíše kód, rovnou ho spustí a ukáže vám výsledek. Nelíbí se vám? Napíšete, co změnit. Kód přitom nemusíte vidět ani jednou.</p>
+      <p>Pojem zavedl Andrej Karpathy na začátku roku 2025 a myslel jím doslova „nechám AI psát a ani se na to nedívám“. Dneska se tak říká skoro všemu, kde AI pomáhá s programováním — od hraní si po profesionální vývoj.</p>
+      <p class="pull">Bariéra se neodstranila, jen se posunula. Dřív bylo potřeba umět programovat. Teď je potřeba umět popsat, co chcete — a poznat, že to nefunguje.</p>
+      <div class="uziti" id="myty"></div>
+      <p class="note">Klikněte na kterékoli tvrzení.</p>
+    </section>
+
+    <!-- 2 -->
+    <section class="step" id="s1" hidden>
+      <p class="kicker">Krok 2 ze 6</p>
+      <h2>Čtyři prostředí</h2>
+      <p>Vypadají podobně — okno, do kterého píšete — ale liší se v tom nejdůležitějším: co z nich vyleze a kdo se o to pak stará.</p>
+      <div class="uziti" id="prostredi"></div>
+      <p class="note">Do stejné kategorie patří i <a href="https://bolt.new/" target="_blank" rel="noopener">bolt.new</a> a <a href="https://replit.com/" target="_blank" rel="noopener">Replit</a>. Principy jsou stejné, liší se mírou kontroly a cenou.</p>
+    </section>
+
+    <!-- 3 -->
+    <section class="step" id="s2" hidden>
+      <p class="kicker">Krok 3 ze 6</p>
+      <h2>Co si tím v kanceláři reálně uděláte</h2>
+      <p>Tady je potřeba oddělit dvě věci: co jde udělat za odpoledne a co z toho smíte pustit mezi lidi. První seznam je dlouhý, druhý krátký.</p>
+      <h3>Zvládnete sami, za odpoledne</h3>
+      <div class="uziti" id="zvladnete"></div>
+      <p class="pull">Celá tahle série lekcí je takhle udělaná. Žádný programátor, žádná instalace — popsaný obsah, popsané chování, výsledek je odkaz, který se dá poslat.</p>
+      <h3>Zkuste si zařadit</h3>
+      <div class="kviz" id="q1"></div>
+    </section>
+
+    <!-- 4 -->
+    <section class="step" id="s3" hidden>
+      <p class="kicker">Krok 4 ze 6</p>
+      <h2>Kde to narazí</h2>
+      <p>Tahle část se na nadšených prezentacích vynechává. Není to důvod do toho nejít — je to důvod vědět, kde je hranice mezi „pomůcka pro mě“ a „aplikace, se kterou pracuje firma“.</p>
+      <div class="rizika" id="rizika"></div>
+      <p class="note">Čísla výš pocházejí z analýz, které většinou zveřejňují firmy prodávající bezpečnostní nástroje — berte je jako řádový odhad, ne jako měření. Co z nich ale plyne, potvrzují i nezávislé zdroje: kód, který nikdo nezkontroloval, obsahuje chyby, o kterých nikdo neví.</p>
+      <p class="pull">Nejčastější problém není špatný kód. Je to aplikace s firemními daty, o které netuší IT ani vedení — a kterou spravuje člověk, co odejde na mateřskou.</p>
+    </section>
+
+    <!-- 5 -->
+    <section class="step" id="s4" hidden>
+      <p class="kicker">Krok 5 ze 6</p>
+      <h2>Jak zadat, aby z toho něco bylo</h2>
+      <p>Zadání aplikace se píše jinak než prompt na text. Nepopisujete, jak to má vypadat, ale <strong>co se má stát</strong> — a hlavně co se má stát, když něco nevyjde.</p>
+      <p>Zkuste si části přidávat a sledujte, jak se ze tří slov stává použitelné zadání.</p>
+      <div class="parts" id="parts"></div>
+      <pre class="prompt" id="promptOut" aria-live="polite"></pre>
+      <p class="count" id="count"></p>
+      <h3>Tři návyky, které ušetří nejvíc času</h3>
+      <div class="uziti" id="navyky"></div>
+    </section>
+
+    <!-- 6 -->
+    <section class="step" id="s5" hidden>
+      <p class="kicker">Krok 6 ze 6</p>
+      <h2>Kdy ano a kdy do IT</h2>
+      <p>Jedna otázka rozhodne skoro všechno: <strong>jsou v tom data, která nejsou jen vaše, a bude to používat někdo další?</strong></p>
+      <div class="tabwrap">
+        <table class="tab">
+          <thead><tr><th>Situace</th><th>Jak postupovat</th></tr></thead>
+          <tbody>
+            <tr><td>Pomůcka jen pro mě, bez citlivých dat</td><td>Klidně sama. Nejhorší, co se stane, je, že to nebude fungovat.</td></tr>
+            <tr><td>Materiál nebo kalkulačka pro účastníky a klienty</td><td>Sama, ale nesbírejte přes to žádné údaje. Když do toho lidé něco píšou, ať to zůstane v jejich prohlížeči.</td></tr>
+            <tr><td>Prototyp, který chci ukázat IT nebo vedení</td><td>Ideální použití. Obrázek vydá za tisíc slov, funkční prototyp za deset schůzek.</td></tr>
+            <tr><td>Něco, co sbírá údaje od lidí</td><td>Zastavte se a zeptejte se IT. I obyčejný formulář s e-maily je zpracování osobních údajů.</td></tr>
+            <tr><td>Nástroj, který má používat tým</td><td>IT projekt. Může začít vaším prototypem, ale nasazuje a spravuje ho někdo, kdo za to odpovídá.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Než to pustíte dál než ke svému stolu</h3>
+      <ul class="rules" id="rules"></ul>
+      <p class="done" id="doneMsg" hidden>Pět otázek, které oddělují šikovnou pomůcku od problému, na který se přijde za rok.</p>
+      <p class="note">Jestli vás to chytne, nejlepší další krok není větší nástroj, ale menší projekt. Udělejte si tři malé věci, které opravdu používáte, než se pustíte do něčeho pro celou firmu.</p>
+    </section>
+
+  </main>
+
+  <div class="foot">
+    <span class="pos" id="pos">Krok 1 / 6</span>
+    <div class="btns">
+      <button class="btn" id="prev" disabled>Zpět</button>
+      <button class="btn main" id="next">Další krok</button>
+    </div>
+  </div>
+  </div>
+</div>
+
+<footer class="sig">
+  <p class="disc"><strong>Nástroje v téhle oblasti se mění nejrychleji z celé série.</strong> Materiál je psaný ke stavu 25. 10. 2026. Ceny, limity i názvy funkcí si ověřte přímo u dodavatele — a u bezpečnostních čísel berte v potaz, kdo je zveřejnil.</p>
+  <p class="serie">
+    <a href="https://evcaher.github.io/ai-lekce/">Všechny lekce</a>
+    <a href="https://evcaher.github.io/ai-lekce/ai-media.html">← 4. Hlas, video, obrázek</a>
+  </p>
+  <p>Výukový materiál — Eva Hermanová · <a href="https://www.itlektorka.eu" target="_blank" rel="noopener">itlektorka.eu</a></p>
+</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var steps = Array.prototype.slice.call(document.querySelectorAll('.step'));
+  var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+  var tokens = ['k1','k2','k3','k4','k5','k6'];
+  var cur = 0;
+
+  function show(i){
+    i = Math.max(0, Math.min(steps.length - 1, i));
+    cur = i;
+    steps.forEach(function(s, n){ s.hidden = n !== i; s.classList.remove('anim'); });
+    void steps[i].offsetWidth;
+    steps[i].classList.add('anim');
+    chips.forEach(function(c, n){ c.setAttribute('aria-current', n === i ? 'true' : 'false'); });
+    document.getElementById('fill').style.width = ((i + 1) / steps.length * 100) + '%';
+    document.getElementById('pos').textContent = 'Krok ' + (i + 1) + ' / ' + steps.length;
+    document.getElementById('prev').disabled = i === 0;
+    var nx = document.getElementById('next');
+    nx.disabled = i === steps.length - 1;
+    nx.textContent = i === steps.length - 1 ? 'Na konci' : 'Další krok';
+    try { history.replaceState(null, '', '#' + tokens[i]); } catch (e) {}
+  }
+  chips.forEach(function(c){ c.addEventListener('click', function(){ show(+c.dataset.go); }); });
+  document.getElementById('next').addEventListener('click', function(){ show(cur + 1); });
+  document.getElementById('prev').addEventListener('click', function(){ show(cur - 1); });
+  document.addEventListener('keydown', function(e){
+    if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+    if (e.key === 'ArrowRight') show(cur + 1);
+    if (e.key === 'ArrowLeft') show(cur - 1);
+  });
+  window.addEventListener('hashchange', function(){
+    var i = tokens.indexOf((location.hash || '').replace('#', ''));
+    if (i > -1 && i !== cur) show(i);
+  });
+
+  /* karty: [nadpis, podtitulek, [[štítek, HTML], ...]] */
+  function karty(mount, data){
+    var w = document.getElementById(mount);
+    data.forEach(function(k){
+      var d = document.createElement('div');
+      d.className = 'u';
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-expanded', 'false');
+      b.innerHTML = '<span class="co"></span><span class="cim"></span><span class="sign">+</span>';
+      b.querySelector('.co').textContent = k[0];
+      b.querySelector('.cim').textContent = k[1];
+      var det = document.createElement('div');
+      det.className = 'det';
+      det.hidden = true;
+      k[2].forEach(function(p){
+        var dl = document.createElement('dl');
+        var dt = document.createElement('dt');
+        dt.textContent = p[0];
+        var dd = document.createElement('dd');
+        dd.innerHTML = p[1];
+        dl.appendChild(dt); dl.appendChild(dd); det.appendChild(dl);
+      });
+      b.addEventListener('click', function(){
+        det.hidden = !det.hidden;
+        b.setAttribute('aria-expanded', String(!det.hidden));
+        b.querySelector('.sign').textContent = det.hidden ? '+' : '−';
+      });
+      d.appendChild(b); d.appendChild(det); w.appendChild(d);
+    });
+  }
+
+  function kviz(mount, items){
+    var w = document.getElementById(mount);
+    items.forEach(function(it){
+      var d = document.createElement('div');
+      d.className = 'sit';
+      var q = document.createElement('p');
+      q.className = 'q';
+      q.innerHTML = '<em></em><span></span>';
+      q.querySelector('em').textContent = it.stitek;
+      q.querySelector('span').textContent = it.text;
+      var row = document.createElement('div');
+      row.className = 'row';
+      var fb = document.createElement('p');
+      fb.className = 'fb';
+      fb.hidden = true;
+      it.opts.forEach(function(o){
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = o.label;
+        b.addEventListener('click', function(){
+          Array.prototype.forEach.call(row.querySelectorAll('button'), function(x){ x.className = ''; });
+          b.className = o.ok ? 'pick-ok' : 'pick-bad';
+          fb.textContent = o.why;
+          fb.className = 'fb' + (o.ok ? '' : ' no');
+          fb.hidden = false;
+        });
+        row.appendChild(b);
+      });
+      d.appendChild(q); d.appendChild(row); d.appendChild(fb); w.appendChild(d);
+    });
+  }
+
+  /* ---- krok 1 ---- */
+  karty('myty', [
+    ['„Programovat se už nemusí umět“', 'napůl pravda', [
+      ['Jak to je', 'Na první verzi opravdu ne. Na druhou, když první nefunguje, už trochu. A na nasazení do firmy rozhodně ano — jen už to nemusíte být vy, kdo to umí.']
+    ]],
+    ['„Když to běží, je to hotové“', 'nejdražší omyl', [
+      ['Jak to je', 'Že aplikace funguje, neznamená, že je bezpečná. Chybějící kontrola oprávnění se pozná až ve chvíli, kdy se do dat dostane někdo cizí. Do té doby to vypadá úplně stejně jako hotová práce.']
+    ]],
+    ['„Ušetří to peníze za vývojáře“', 'někdy ano, někdy naopak', [
+      ['Jak to je', 'U prototypu a interní pomůcky ano, a hodně. U věci, která má běžet roky, zaplatíte vývojáře stejně — jen později a dráž, protože začne tím, že bude rozmotávat, co tam vzniklo.']
+    ]],
+    ['„Je to hračka pro nadšence“', 'už ne', [
+      ['Jak to je', 'Takhle vzniká čím dál víc reálných aplikací, včetně těch, co drží firemní data. Právě proto dává smysl vědět, kde jsou hranice — ne to ignorovat.']
+    ]]
+  ]);
+
+  /* ---- krok 2 ---- */
+  karty('prostredi', [
+    ['Claude Artifacts', 'stránka z chatu, hned a bez účtu navíc', [
+      ['Co z toho vyleze', 'Jedna interaktivní stránka s odkazem, který můžete poslat. Kalkulačka, formulář, přehled, výukový materiál. Nic se neinstaluje a nikam se nepřihlašujete — píšete to v chatu, který už používáte.'],
+      ['Kde je hranice', 'Je to stránka, ne systém. Na uživatelské účty, propojení s firemními systémy nebo na data, ke kterým se vrací víc lidí, je potřeba něco jiného.'],
+      ['Pro koho', 'Nejnižší práh ze všech čtyř. Jestli chcete zkusit, jaké to je, začněte tady.']
+    ]],
+    ['Lovable', 'celá webová aplikace z popisu', [
+      ['Co z toho vyleze', 'Skutečná aplikace i s přihlašováním a databází, nasazená na internet. Podle vlastního popisu míří na lidi bez technického vzdělání a složitost schovává.', ],
+      ['Kde je hranice', 'Právě v tom schovávání. Když něco nefunguje nebo je potřeba řešit bezpečnost, jste v prostředí, kterému nerozumíte — a ono rozhoduje o přístupu k vašim datům.'],
+      ['Odkaz', '<a href="https://lovable.dev/dashboard" target="_blank" rel="noopener">lovable.dev</a>']
+    ]],
+    ['Macaly', 'stejná kategorie, menší hráč', [
+      ['Co slibuje', 'Weby, webové aplikace a nástroje z jednoduchého zadání, včetně hostingu, databáze, analytiky a napojení na další služby. Cílí na zakladatele a malé firmy.'],
+      ['Na co pozor', 'Oproti zavedenějším nástrojům je o něm výrazně míň nezávislých zkušeností. U menších služeb se vyplatí ověřit, co se stane s vašimi daty a s aplikací, kdyby provozovatel skončil.'],
+      ['Odkaz', '<a href="https://macaly.com" target="_blank" rel="noopener">macaly.com</a>']
+    ]],
+    ['GitHub Copilot', 'pro existující projekt, ne pro kancelář', [
+      ['Jak to funguje', 'Žije uvnitř editoru kódu (VS Code) a pomáhá na projektu, který už existuje. V režimu agenta sám zjistí, které soubory změnit, provede úpravy napříč nimi a spouští příkazy, dokud není úkol hotový. Zadání se dá předat i do cloudu, kde na něm pracuje na pozadí a výsledek pošle ke schválení.'],
+      ['Pro koho', 'Pro vývojáře a IT. Jako první krok pro kancelářského člověka to není — chybí tu to hlavní kouzlo ostatních nástrojů, že výsledek hned vidíte.'],
+      ['Proč to znát', 'Protože tohle je nástroj, kterým vaše IT oddělení zpracuje to, co jim přinesete jako prototyp.']
+    ]]
+  ]);
+
+  /* ---- krok 3 ---- */
+  karty('zvladnete', [
+    ['Kalkulačka nebo převodník', 'nejčastější první projekt', [
+      ['Příklad', 'Výpočet marže, cenová kalkulačka pro klienty, převod jednotek, plánovač kapacity. Vejde se na jednu stránku, nikam se nic neukládá.']
+    ]],
+    ['Interaktivní materiál', 'místo prezentace', [
+      ['Příklad', 'Přesně tohle, co máte před sebou. Výklad rozdělený na kroky, kvízy, checklist. Pošlete odkaz a účastník si to projde vlastním tempem.']
+    ]],
+    ['Prototyp pro IT', 'nejlepší návratnost ze všech', [
+      ['Příklad', 'Místo třístránkového zadání ukážete funkční náhled a řeknete „takhle si to představuju“. Ušetří to kolo nedorozumění, i když se nakonec napíše celé znovu.']
+    ]],
+    ['Jednorázová stránka', 'na akci, na kampaň', [
+      ['Příklad', 'Program konference, přihláška na firemní akci, přehled novinek. Pozor: jakmile tam lidé zadávají údaje, přečtěte si krok 6.']
+    ]]
+  ]);
+
+  kviz('q1', [
+    { stitek: 'Zvládnu sama?', text: 'Kalkulačka, která z pěti čísel spočítá cenu zakázky. Nic se neukládá, používám ji jen já.',
+      opts: [
+        { label: 'Sama, klidně', ok: true, why: 'Ano. Žádná data, jeden uživatel, žádné riziko. Tohle je ideální první projekt — a za odpoledne hotovo.' },
+        { label: 'S pomocí IT', ok: false, why: 'Zbytečně. Nic neukládáte a nikdo další to nepoužívá. Když to nebude fungovat, nic se nestane.' },
+        { label: 'Nechat být', ok: false, why: 'Škoda. Přesně tyhle malé pomůcky mají nejlepší poměr práce k užitku.' }
+      ]},
+    { stitek: 'Zvládnu sama?', text: 'Formulář, kterým se účastníci přihlašují na školení. Ukládá jméno, e-mail a firmu.',
+      opts: [
+        { label: 'Sama, klidně', ok: false, why: 'Ne. Jakmile se ukládají jména a e-maily, zpracováváte osobní údaje — a odpovídáte za to, kde leží a kdo se k nim dostane.' },
+        { label: 'Zeptat se IT', ok: true, why: 'Správně. Nebo použít hotový nástroj, který to má vyřešené — Forms, přihlašovací systém. Vlastnoručně postavený formulář s osobními údaji je zbytečné riziko.' },
+        { label: 'Stačí to zaheslovat', ok: false, why: 'Heslo není odpověď na otázku, kde data leží, kdo k nim má přístup a co se stane, když služba skončí.' }
+      ]},
+    { stitek: 'Zvládnu sama?', text: 'Náhled nástroje na evidenci zakázek, který chci ukázat vedení, aby schválilo rozpočet na skutečný systém.',
+      opts: [
+        { label: 'Sama, klidně', ok: true, why: 'Ano, a je to jedno z nejlepších využití vůbec. Prototyp na ukázku nemusí být bezpečný ani úplný — musí být pochopitelný. Jen do něj nedávejte reálná data.' },
+        { label: 'Zeptat se IT', ok: false, why: 'Až potom. Na prototyp, který má jen ukázat myšlenku, je zapojovat zbytečné — právě proto, aby bylo o čem se bavit.' },
+        { label: 'Nechat na dodavateli', ok: false, why: 'Dodavatel vám náhled udělá taky, ale zaplatíte za něj a budete čekat. Tohle zvládnete za odpoledne.' }
+      ]}
+  ]);
+
+  /* ---- krok 4 ---- */
+  var rizika = [
+    ['Kód funguje, ale není bezpečný',
+     'Analýzy z roku 2026 uvádějí, že zhruba třetina AI generovaného kódu obsahuje bezpečnostní chybu — typicky nedostatečnou kontrolu oprávnění nebo přístupové klíče napsané přímo do kódu. Na výsledku to není vidět: aplikace vypadá a chová se úplně stejně.'],
+    ['Reálný příklad, ne teorie',
+     'U aplikací vytvořených v Lovable se našla chyba v nastavení přístupu k databázi (CVE-2025-48757), která umožňovala i nepřihlášenému útočníkovi číst a zapisovat do tabulek. Nešlo o jednu aplikaci, ale o způsob, jakým se generovaly.'],
+    ['Opakované úpravy problém nezmenšují',
+     'Intuitivně by se čekalo, že čím víc kol úprav, tím lepší výsledek. U bezpečnosti to podle dostupných analýz platí naopak — s každou další iterací zranitelností spíš přibývá. Jedna analýza z konce roku 2025 napočítala u kódu s velkým podílem AI zhruba 1,7krát víc závažných problémů.'],
+    ['Vymyšlené součástky',
+     'Modely si občas vymyslí název knihovny, která neexistuje. Útočníci toho využívají a takový název si zaregistrují se škodlivým obsahem — a příště se nainstaluje.'],
+    ['Aplikace, o které nikdo neví',
+     'Z pohledu firmy je tohle největší riziko. Vznikne užitečný nástroj, lidé do něj začnou dávat data, nikdo ho needviduje, nikdo ho nezálohuje a autor za rok odejde. Bez AI to trvalo měsíce. S AI to vznikne za odpoledne.']
+  ];
+  var rw = document.getElementById('rizika');
+  rizika.forEach(function(r){
+    var d = document.createElement('div');
+    d.className = 'riz';
+    var h = document.createElement('h4');
+    h.textContent = r[0];
+    var p = document.createElement('p');
+    p.textContent = r[1];
+    d.appendChild(h); d.appendChild(p); rw.appendChild(d);
+  });
+
+  /* ---- krok 5 ---- */
+  var parts = [
+    ['Co to dělá', 'Udělej stránku, kde si zadám rozměry skleněné příčky a počet kusů a spočítá se cena zakázky.'],
+    ['Pro koho', 'Používat to bude obchodník u zákazníka na tabletu, není technik a potřebuje to ovládat jednou rukou.'],
+    ['Jaká data', 'Ceník mám v těchto třech sazbách za metr čtvereční: kalené 2400, matné 2900, protipožární 4100. Montáž je 15 % z ceny materiálu.'],
+    ['Co se stane když', 'Když zadá rozměr mimo rozsah 50–300 cm, ukaž u pole vysvětlení místo výsledku. Prázdná pole neber jako nulu.'],
+    ['Co nemá dělat', 'Nic se nikam neukládá a nikam neodesílá, žádné přihlašování, žádná databáze.'],
+    ['Jak to má vypadat', 'Střídmě, velká čitelná čísla, výsledek stále vidět na obrazovce bez rolování.']
+  ];
+  var on = [false, false, false, false, false, false];
+  var pw = document.getElementById('parts'), po = document.getElementById('promptOut'), ct = document.getElementById('count');
+  function renderPrompt(){
+    po.innerHTML = '';
+    parts.forEach(function(p, i){
+      var s = document.createElement('span');
+      s.textContent = (on[i] ? p[1] : '[' + p[0].toLowerCase() + ']') + (i < parts.length - 1 ? '\n' : '');
+      if (!on[i]) s.className = 'off';
+      po.appendChild(s);
+    });
+    var n = on.filter(Boolean).length;
+    var msg = ['Prázdné zadání.',
+               'Jedna část. Něco dostanete, ale bude to vypadat jako cvičná ukázka.',
+               'Dvě části. Nástroj ví, co a pro koho — zbytek si vymyslí.',
+               'Tři části. S vlastními čísly to začíná být váš nástroj, ne ukázka.',
+               'Čtyři části. Ošetřené chyby jsou rozdíl mezi hračkou a pomůckou, kterou vážně používáte.',
+               'Pět částí. Omezení „nic se neukládá“ je přitom to nejdůležitější, co můžete napsat.',
+               'Všech šest. Takhle vypadá zadání, po kterém nemusíte nic dvakrát vysvětlovat.'][n];
+    ct.textContent = n + ' ze 6 částí — ' + msg;
+  }
+  parts.forEach(function(p, i){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'part';
+    b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = '<span></span><em>+</em>';
+    b.querySelector('span').textContent = p[0];
+    b.addEventListener('click', function(){
+      on[i] = !on[i];
+      b.setAttribute('aria-pressed', String(on[i]));
+      b.querySelector('em').textContent = on[i] ? '✓' : '+';
+      renderPrompt();
+    });
+    pw.appendChild(b);
+  });
+  renderPrompt();
+
+  karty('navyky', [
+    ['Po malých krocích', 'jedna změna, jedna kontrola', [
+      ['Proč', 'Když zadáte pět změn najednou a výsledek je rozbitý, nevíte která to byla. Jedna změna, vyzkoušet, pokračovat. Zní to pomaleji a je to rychlejší.']
+    ]],
+    ['Nechat si vysvětlit, co to dělá', 'i když kódu nerozumíte', [
+      ['Proč', 'Zeptejte se běžnou řečí: „co se stane, když to někdo otevře z cizího počítače?“ nebo „kam se ukládá, co lidi vyplní?“. Odpověď pochopíte — a často vás překvapí.']
+    ]],
+    ['Ukládat si verze, které fungovaly', 'než začnete vylepšovat', [
+      ['Proč', 'Nástroje umí vrátit krok zpět, ale ne vždycky tam, kam potřebujete. Když něco funguje, uložte si to stranou, než se pustíte do další úpravy.']
+    ]]
+  ]);
+
+  /* ---- krok 6 ---- */
+  var rules = [
+    'Jsou v tom data, která nejsou jen moje?',
+    'Bude to používat někdo další — a ví o tom?',
+    'Vím, kde ta aplikace běží a co se stane, když ta služba skončí?',
+    'Zeptala jsem se nástroje, kam se ukládá to, co lidé vyplní?',
+    'Existuje někdo kromě mě, kdo to v případě potřeby převezme?'
+  ];
+  var rulesW = document.getElementById('rules'), dm = document.getElementById('doneMsg');
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem('vibe-rules') || '{}') || {}; } catch (e) { saved = {}; }
+  function checkDone(){
+    var all = Array.prototype.slice.call(rulesW.querySelectorAll('input')).every(function(i){ return i.checked; });
+    dm.hidden = !all;
+  }
+  rules.forEach(function(r, i){
+    var li = document.createElement('li');
+    var lab = document.createElement('label');
+    var inp = document.createElement('input');
+    inp.type = 'checkbox';
+    inp.id = 'vibe-rule' + i;
+    inp.checked = !!saved['r' + i];
+    var sp = document.createElement('span');
+    sp.className = 'txt';
+    sp.textContent = r;
+    inp.addEventListener('change', function(){
+      saved['r' + i] = inp.checked;
+      try { localStorage.setItem('vibe-rules', JSON.stringify(saved)); } catch (e) {}
+      checkDone();
+    });
+    lab.appendChild(inp); lab.appendChild(sp); li.appendChild(lab); rulesW.appendChild(li);
+  });
+  checkDone();
+
+  var h = (location.hash || '').replace('#', '');
+  var ix = tokens.indexOf(h);
+  show(ix > -1 ? ix : 0);
+})();
+</script>
+
+</body>
+</html>
