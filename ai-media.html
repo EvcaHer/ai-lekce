@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hlas, video, obrázek</title>
+<meta name="description" content="Specializované AI aplikace na hlas, video a obrázky, profesionální portréty, prompty na obrázky a rozcestník nástrojů.">
+<meta name="author" content="Eva Hermanová">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Hlas, video, obrázek">
+<meta property="og:description" content="Specializované AI aplikace na hlas, video a obrázky, profesionální portréty, prompty na obrázky a rozcestník nástrojů.">
+<meta property="og:locale" content="cs_CZ">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@300;600;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: stejná kostra jako ostatní lekce (rail vlevo, sloupec max 68ch), akcent bronzový */
+:root{
+  --bg:#F8F6F3; --surface:#FFFFFF; --sunk:#F0EBE4; --line:#DFD8CD;
+  --fg:#1A1713; --muted:#60584D;
+  --accent:#8A5420; --accent-soft:#F2E3CE;
+  --warn:#8F5406; --warn-soft:#F6E7D1;
+  --bad:#8B2E25; --bad-soft:#F4DDD9;
+  --display:'Spectral',Georgia,'Times New Roman',serif;
+  --body:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15120E; --surface:#1F1B16; --sunk:#1A1711; --line:#363026;
+    --fg:#F0EBE3; --muted:#ACA294;
+    --accent:#E0B079; --accent-soft:#362613;
+    --warn:#DFA55C; --warn-soft:#332618;
+    --bad:#E4897C; --bad-soft:#331F1C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15120E; --surface:#1F1B16; --sunk:#1A1711; --line:#363026;
+  --fg:#F0EBE3; --muted:#ACA294;
+  --accent:#E0B079; --accent-soft:#362613;
+  --warn:#DFA55C; --warn-soft:#332618;
+  --bad:#E4897C; --bad-soft:#331F1C;
+  color-scheme: dark;
+}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1060px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 56px}
+
+header .eyebrow{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(1.9rem,5vw,2.9rem);line-height:1.1;margin:.3rem 0 .5rem;text-wrap:balance;letter-spacing:-.01em}
+.lede{font-size:1.06rem;color:var(--muted);max-width:60ch;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:18px;font-size:.84rem;color:var(--muted)}
+.meta span{display:inline-flex;align-items:center;gap:7px}
+.dotmark{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none}
+.bar{height:3px;background:var(--line);border-radius:2px;margin:22px 0 0;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);width:16.6%;transition:width .35s ease}
+
+.grid{display:grid;grid-template-columns:216px 1fr;gap:34px;margin-top:30px;align-items:start}
+.grid>*{min-width:0}
+@media (max-width:820px){.grid{grid-template-columns:1fr;gap:20px}}
+
+nav.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;position:sticky;top:env(safe-area-inset-top,0px)}
+@media (max-width:820px){nav.rail ol{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:6px;position:static;scrollbar-width:thin}}
+.chip{appearance:none;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:var(--r);
+  padding:9px 11px;font:inherit;font-size:.88rem;color:var(--muted);cursor:pointer;display:flex;gap:10px;align-items:baseline;min-width:0}
+.chip:hover{background:var(--sunk);color:var(--fg)}
+.chip b{font-family:var(--mono);font-size:.76rem;font-weight:500;color:var(--accent);flex:none}
+.chip[aria-current="true"]{background:var(--surface);border-color:var(--line);color:var(--fg);font-weight:500}
+@media (max-width:820px){.chip{width:auto;white-space:nowrap}.chip span{display:none}.chip[aria-current="true"] span{display:inline}}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(20px,3.4vw,34px);min-width:0}
+.step h2{font-family:var(--display);font-weight:600;font-size:clamp(1.4rem,3.2vw,1.85rem);line-height:1.2;margin:0 0 .45rem;text-wrap:balance}
+.step h3{font-family:var(--display);font-weight:600;font-size:1.18rem;margin:30px 0 .3rem}
+.step p{max-width:66ch}
+.step p:first-of-type{margin-top:0}
+.step a{color:var(--accent)}
+.kicker{font-family:var(--mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 .7rem}
+.note{font-size:.86rem;color:var(--muted);border-left:2px solid var(--line);padding-left:13px;margin:18px 0 0;max-width:62ch}
+.pull{font-family:var(--display);font-size:1.12rem;line-height:1.45;color:var(--fg);margin:22px 0 0;max-width:56ch}
+.step[hidden]{display:none!important}
+.anim{animation:in .3s ease both}
+@keyframes in{from{opacity:.35;transform:translateY(5px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.anim{animation:none}.bar>i{transition:none}}
+
+/* karty použití */
+.uziti{display:grid;gap:10px;margin:22px 0 0}
+.u{border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.u>button{appearance:none;width:100%;background:var(--surface);border:0;font:inherit;text-align:left;cursor:pointer;color:var(--fg);
+  padding:14px 16px;display:flex;gap:12px;align-items:baseline;min-width:0}
+.u>button:hover{background:var(--sunk)}
+.u .co{font-weight:600;flex:none}
+.u .cim{flex:1;min-width:0;font-size:.89rem;color:var(--muted)}
+.u .sign{font-family:var(--mono);font-size:.78rem;color:var(--accent);flex:none}
+.u .det{padding:0 16px 15px;display:grid;gap:10px}
+.u dl{margin:0;display:grid;gap:3px}
+.u dt{font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.u dd{margin:0;font-size:.93rem;color:var(--muted);max-width:62ch}
+.u dd a{color:var(--accent)}
+
+/* kvíz */
+.kviz{display:grid;gap:14px;margin:22px 0 0}
+.sit{border:1px solid var(--line);border-radius:var(--r);background:var(--sunk);padding:15px 16px}
+.sit .q{font-weight:500;margin:0 0 11px;line-height:1.45}
+.sit .q em{font-style:normal;font-family:var(--mono);font-size:.74rem;color:var(--muted);display:block;margin-bottom:5px;letter-spacing:.06em;text-transform:uppercase}
+.sit .row{display:flex;flex-wrap:wrap;gap:7px}
+.sit button{appearance:none;font:inherit;font-size:.92rem;cursor:pointer;background:var(--surface);border:1px solid var(--line);
+  border-radius:999px;padding:7px 14px;color:var(--fg)}
+.sit button:hover{border-color:var(--accent)}
+.sit button.pick-ok{background:var(--accent-soft);border-color:var(--accent);color:var(--fg);font-weight:500}
+.sit button.pick-bad{background:var(--bad-soft);border-color:var(--bad);color:var(--fg)}
+.sit .fb{font-size:.92rem;margin:12px 0 0;padding-left:13px;border-left:2px solid var(--accent);max-width:62ch}
+.sit .fb.no{border-color:var(--bad)}
+
+/* skládačka promptu */
+.parts{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 16px}
+.part{appearance:none;font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--muted);
+  border-radius:999px;padding:7px 14px;display:inline-flex;gap:8px;align-items:center}
+.part[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--fg);font-weight:500}
+.part em{font-style:normal;font-family:var(--mono);font-size:.74rem;opacity:.75}
+pre.prompt{font-family:var(--mono);font-size:.85rem;line-height:1.65;background:var(--sunk);border:1px solid var(--line);
+  border-radius:var(--r);padding:16px 18px;margin:0;white-space:pre-wrap;word-break:break-word}
+pre.prompt .off{color:var(--muted);opacity:.45}
+.count{font-size:.84rem;color:var(--muted);margin:12px 0 0}
+
+/* hotové prompty ke zkopírování */
+.hotovy{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin:18px 0 0}
+.hotovy header{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;
+  padding:12px 16px;background:var(--sunk);border-bottom:1px solid var(--line)}
+.hotovy h4{margin:0;font-size:.98rem;font-weight:600}
+.hotovy .kopie{appearance:none;font:inherit;font-size:.84rem;cursor:pointer;border:1px solid var(--line);background:var(--surface);
+  color:var(--fg);border-radius:7px;padding:6px 13px}
+.hotovy .kopie:hover{border-color:var(--accent)}
+.hotovy .kopie.hotovo{background:var(--accent-soft);border-color:var(--accent);color:var(--fg)}
+.hotovy .telo{max-height:280px;overflow-y:auto}
+.hotovy pre{margin:0;border:0;border-radius:0;background:var(--surface)}
+
+/* tabulky */
+.tab{width:100%;border-collapse:collapse;margin:0;font-size:.92rem}
+.tab th,.tab td{text-align:left;padding:10px 12px 10px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.tab th{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tab td:first-child{font-weight:500;padding-right:18px;white-space:nowrap}
+.tab a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--line)}
+.tab a:hover{border-color:var(--accent)}
+.tabwrap{overflow-x:auto;margin:20px 0 0}
+.tabwrap .tab{min-width:430px}
+
+/* checklist */
+.rules{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:8px}
+.rules label{display:flex;gap:13px;align-items:flex-start;border:1px solid var(--line);border-radius:var(--r);
+  background:var(--surface);padding:13px 15px;cursor:pointer;line-height:1.45}
+.rules label:hover{background:var(--sunk)}
+.rules input{appearance:none;width:19px;height:19px;flex:none;margin:2px 0 0;border:1.5px solid var(--line);border-radius:5px;
+  background:var(--bg);cursor:pointer;position:relative}
+.rules input:checked{background:var(--accent);border-color:var(--accent)}
+.rules input:checked::after{content:"";position:absolute;left:5px;top:2px;width:5px;height:10px;border:solid var(--surface);
+  border-width:0 2px 2px 0;transform:rotate(42deg)}
+.rules input:checked~.txt{color:var(--muted)}
+.done{margin:20px 0 0;font-size:.92rem;color:var(--accent);font-weight:500}
+
+.foot{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-top:26px}
+.btns{display:flex;gap:9px}
+.btn{appearance:none;font:inherit;cursor:pointer;border-radius:8px;padding:10px 20px;border:1px solid var(--line);
+  background:var(--surface);color:var(--fg)}
+.btn:hover{background:var(--sunk)}
+.btn.main{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:500}
+.btn.main:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.4;cursor:default}
+.pos{font-family:var(--mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+footer.sig{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted);display:grid;gap:10px}
+footer.sig a{color:var(--accent)}
+.disc{border:1px solid var(--line);border-radius:var(--r);background:var(--sunk);padding:13px 15px;max-width:72ch;line-height:1.5}
+.serie{display:flex;flex-wrap:wrap;gap:6px 18px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Výukový průvodce · 4. díl</p>
+  <h1>Hlas, video, obrázek</h1>
+  <p class="lede">Chat umí text. Jakmile potřebujete namluvit kurz, natočit video nebo mít použitelný portrét na LinkedIn, jdete do specializované aplikace — a tam začíná jiná sada otázek.</p>
+  <div class="meta">
+    <span><i class="dotmark"></i>6 kroků, asi 25 minut</span>
+    <span><i class="dotmark"></i>Stav k 25. 10. 2026</span>
+    <span><i class="dotmark"></i>Šipkami ← → se dá listovat</span>
+  </div>
+  <div class="bar"><i id="fill"></i></div>
+</header>
+
+<div class="grid">
+  <nav class="rail" aria-label="Kroky">
+    <ol>
+      <li><button class="chip" aria-current="true" data-go="0"><b>01</b><span>Kdy ven z chatu</span></button></li>
+      <li><button class="chip" data-go="1"><b>02</b><span>Hlas</span></button></li>
+      <li><button class="chip" data-go="2"><b>03</b><span>Video</span></button></li>
+      <li><button class="chip" data-go="3"><b>04</b><span>Obrázky a portréty</span></button></li>
+      <li><button class="chip" data-go="4"><b>05</b><span>Prompty na obrázky</span></button></li>
+      <li><button class="chip" data-go="5"><b>06</b><span>Rozcestník a pravidla</span></button></li>
+    </ol>
+  </nav>
+
+  <div>
+  <main class="panel">
+
+    <!-- 1 -->
+    <section class="step" id="s0">
+      <p class="kicker">Krok 1 ze 6</p>
+      <h2>Kdy vyjít z chatu ven</h2>
+      <p>Chat zvládne nápad, scénář i popis obrázku. Jakmile ale chcete hotový zvuk, video nebo grafiku v kvalitě, kterou pustíte ven, potřebujete nástroj, který dělá jednu věc pořádně.</p>
+      <p>Než si cokoli předplatíte, projděte tři otázky. Většinu nákupů zastaví hned ta druhá.</p>
+      <div class="uziti" id="otazky"></div>
+      <p class="pull">Nejdražší předplatné je to, které jste si pořídili na jedno video a platíte ho rok.</p>
+      <div class="kviz" id="q1"></div>
+    </section>
+
+    <!-- 2 -->
+    <section class="step" id="s1" hidden>
+      <p class="kicker">Krok 2 ze 6</p>
+      <h2>Hlas</h2>
+      <p>Tady se za poslední dva roky změnilo nejvíc. Umělý hlas už nezní jako navigace z roku 2010 a v češtině je použitelný — což dřív neplatilo.</p>
+      <div class="uziti" id="hlas"></div>
+      <h3>Na co si dát pozor</h3>
+      <p>Klonovat můžete <strong>svůj</strong> hlas. Cizí jen s doloženým souhlasem — hlas je podle českého práva projev osobní povahy a u zveřejněného obsahu navíc platí pravidla o označování z <a href="https://evcaher.github.io/ai-lekce/ai-act.html#k5">druhé lekce</a>.</p>
+      <p class="note">A praktická rada: češtinu si vyzkoušejte na vlastním vzorku dřív, než zaplatíte roční tarif. Marketingové ukázky jsou vždycky v angličtině a rozdíl bývá slyšet.</p>
+    </section>
+
+    <!-- 3 -->
+    <section class="step" id="s2" hidden>
+      <p class="kicker">Krok 3 ze 6</p>
+      <h2>Video</h2>
+      <p>Video je ze všech tří oblastí nejpracnější a nejvíc se u něj plýtvá. Ne proto, že by nástroje byly špatné, ale protože se lidé pustí do výroby dřív, než mají scénář.</p>
+      <div class="uziti" id="video"></div>
+      <p class="pull">Nejdražší na videu není výroba. Je to scénář a to, že se za půl roku bude muset aktualizovat.</p>
+      <h3>Kdy avatar ano a kdy ne</h3>
+      <p><strong>Ano:</strong> krátká opakovatelná sdělení, která se mění a překládají — onboarding, oznámení změny, produktový popis do deseti jazyků. Přepíšete text, přegenerujete, hotovo.</p>
+      <p><strong>Ne:</strong> cokoli, co má mít vaši osobnost. Školicí video, kde jde o důvěru a vztah, avatar neutáhne. Lidé to poznají a odečtou si to z věrohodnosti.</p>
+      <p class="note">Pokud máte Microsoft 365, Clipchamp už platíte. Na střih, titulky a jednoduché sestříhání záznamu z Teams stačí a nemusíte nic dalšího pořizovat.</p>
+    </section>
+
+    <!-- 4 -->
+    <section class="step" id="s3" hidden>
+      <p class="kicker">Krok 4 ze 6</p>
+      <h2>Obrázky a profesionální portréty</h2>
+      <h3>Portrét na LinkedIn a na web</h3>
+      <p>Princip je u všech služeb stejný: nahrajete deset až dvacet svých fotek z různých úhlů, nástroj se naučí váš obličej a vygeneruje portréty v různém oblečení, pozadí a světle. Výsledek za pár set korun místo focení u fotografa.</p>
+      <p>Srovnávací žebříčky „nejlepších nástrojů“ jsou skoro všechny psané za provizi, včetně těch, které vypadají jako nezávislý test. Místo pořadí se proto držte čtyř kritérií:</p>
+      <div class="uziti" id="portret"></div>
+      <p class="note">Canva, kterou možná už máte, to umí taky a zdarma — jen s horší podobou. Na rychlý pokus dobré, na fotku, která vám zůstane pět let na webu, spíš ne.</p>
+      <h3>Grafika a obrázky k obsahu</h3>
+      <p>Mimo portréty se v kanceláři nejvíc hodí tři věci: vygenerovat ilustraci, odmazat pozadí a udělat ze zápisu schéma. Všechny tři umí nástroje, které jsou zdarma nebo už je platíte.</p>
+      <div class="uziti" id="grafika"></div>
+    </section>
+
+    <!-- 5 -->
+    <section class="step" id="s4" hidden>
+      <p class="kicker">Krok 5 ze 6</p>
+      <h2>Prompty na obrázky</h2>
+      <p>Obrazový prompt se píše jinak než textový. Nedáváte modelu roli a úkol, ale <strong>popisujete výsledek</strong> — jako když zadáváte práci fotografovi nebo ilustrátorovi. Šest částí, pořadí skoro nerozhoduje.</p>
+      <p>Zkuste si části přidávat a sledujte, jak se zadání mění.</p>
+      <div class="parts" id="parts"></div>
+      <pre class="prompt" id="promptOut" aria-live="polite"></pre>
+      <p class="count" id="count"></p>
+      <h3>Dva hotové prompty k vyzkoušení</h3>
+      <p>Zkopírujte, nahraďte text v hranatých závorkách a pusťte do libovolného generátoru obrázků.</p>
+      <div class="hotovy">
+        <header>
+          <h4>Rozložený pohled na produkt (3D)</h4>
+          <button class="kopie" type="button" data-cil="p1">Kopírovat</button>
+        </header>
+        <div class="telo"><pre id="p1">Hyperrealistický 3D rozložený pohled (exploded view) na [DOPLŇ produkt, např. chytrý reproduktor / kávovar / notebook], všechny součástky vznášející se ve vzduchu symetricky kolem středové osy, studiové osvětlení s jemným výplňovým světlem, ultra-detailní textury každé komponenty, čisté bílé nebo tmavé pozadí, komerční produktová fotografie, poměr stran 1:1, rozlišení 8K</pre></div>
+      </div>
+      <div class="hotovy">
+        <header>
+          <h4>Procesní mapa firmy (izometrická infografika)</h4>
+          <button class="kopie" type="button" data-cil="p2">Kopírovat</button>
+        </header>
+        <div class="telo"><pre id="p2">Vytvoř mega detailní vizuální mapu procesů středně velké české výrobní firmy „Nordglass Systems“, která vyrábí skleněné příčky a interiérové prvky pro kanceláře. Firma má 85 zaměstnanců, obchodní tým, projektové manažery, výrobu, sklad, montážní týmy, zákaznickou podporu, účetní oddělení a marketing.
+
+Obrázek má vypadat jako izometrický řez celou firmou z ptačí perspektivy — něco mezi architektonickým plánkem, strategickou nástěnkou a ručně kresleným procesním diagramem. Rozděl scénu do 7 jasně oddělených zón: 1) příchod poptávky, 2) obchod a nabídka, 3) projektové plánování, 4) výroba, 5) sklad a logistika, 6) montáž u klienta, 7) fakturace, servis a zpětná vazba.
+
+Každá zóna má být jako malý detailní „pokoj“ nebo pracovní ostrov. Mezi zónami veď barevné datové proudy jako svítící linky, potrubí nebo dopravní pásy. Modrá linka = informace od zákazníka, zelená = peníze a fakturace, oranžová = úkoly a termíny, fialová = AI automatizace, červená = rizika a brzdy procesu.
+
+Do obrázku přidej konkrétní vizuální momenty: e-mailová poptávka padá do trychtýře a mění se na kartu v CRM; AI asistent shrnuje požadavky zákazníka; obchodník porovnává tři varianty nabídky; projektový manažer skládá termíny na časové ose; výroba řeže sklo podle digitálního plánu; sklad kontroluje dostupnost materiálu; montážní tým dostává checklist do tabletu; účetní systém automaticky vytváří fakturu; zákaznická zpětná vazba se vrací jako světelný signál zpět do marketingu a obchodu.
+
+Přidej malé české štítky, které jsou čitelné, ale neruší: „Poptávka“, „CRM“, „Nabídka“, „Schválení“, „Termín“, „Výroba“, „Sklad“, „Montáž“, „Fakturace“, „Servis“, „Zpětná vazba“, „AI shrnutí“, „Riziko zpoždění“, „Automatizovat“, „Delegovat“, „Zkontrolovat člověkem“.
+
+Vizuální styl: prémiová editorial infografika, čisté bílé pozadí, jemné akvarelové akcenty, přesné černé linky jako technický nákres, izometrická perspektiva, drobné ručně psané poznámky na okrajích, hodně mikrodetailů, ale stále přehledné. Výsledek má působit jako obrázek, který si manažer vytiskne na zeď a během pěti minut pochopí, kde mu ve firmě utíká čas, peníze a energie.
+
+Kompozice: široký formát 16:9, vysoké rozlišení, ostré detaily, žádní konkrétní lidé v popředí, žádná loga, žádné reálné značky, žádné falešné screenshoty, žádné celebrity, žádný fotorealismus — spíš krásný procesní blueprint, který je zároveň praktický a vizuálně atraktivní.</pre></div>
+      </div>
+      <p class="note">Čím delší prompt, tím větší šance, že model část pokynů pustí z hlavy. U dlouhých zadání čekejte dva tři pokusy a drobné úpravy — hlavně u textu v obrázku, který bývá nejslabší článek. České nápisy se často vykreslí s chybami, počítejte s tím.</p>
+    </section>
+
+    <!-- 6 -->
+    <section class="step" id="s5" hidden>
+      <p class="kicker">Krok 6 ze 6</p>
+      <h2>Rozcestník a pravidla</h2>
+      <p>Nástroje seřazené podle toho, co od nich chcete. Odkazy vedou přímo do aplikace — většina má bezplatnou verzi na vyzkoušení.</p>
+      <div class="tabwrap">
+        <table class="tab">
+          <thead><tr><th>Na co</th><th>Kam jít</th></tr></thead>
+          <tbody id="rozcestnik"></tbody>
+        </table>
+      </div>
+      <h3>Pět pravidel, než si něco pořídíte</h3>
+      <ul class="rules" id="rules"></ul>
+      <p class="done" id="doneMsg" hidden>Pět otázek, které ušetří víc peněz než jakákoli sleva na roční tarif.</p>
+    </section>
+
+  </main>
+
+  <div class="foot">
+    <span class="pos" id="pos">Krok 1 / 6</span>
+    <div class="btns">
+      <button class="btn" id="prev" disabled>Zpět</button>
+      <button class="btn main" id="next">Další krok</button>
+    </div>
+  </div>
+  </div>
+</div>
+
+<footer class="sig">
+  <p class="disc"><strong>Nabídka nástrojů se mění rychleji než cokoli jiného v téhle sérii.</strong> Materiál je psaný ke stavu 25. 10. 2026. Odkazy vedou na stránky třetích stran, které nemám pod kontrolou — ceny, funkce i podmínky si ověřte přímo u nich.</p>
+  <p class="serie">
+    <a href="https://evcaher.github.io/ai-lekce/">Všechny lekce</a>
+    <a href="https://evcaher.github.io/ai-lekce/ai-nastroje.html">← 3. Chat, asistent, agent</a>
+  </p>
+  <p>Výukový materiál — Eva Hermanová · <a href="https://www.itlektorka.eu" target="_blank" rel="noopener">itlektorka.eu</a></p>
+</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var steps = Array.prototype.slice.call(document.querySelectorAll('.step'));
+  var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+  var tokens = ['k1','k2','k3','k4','k5','k6'];
+  var cur = 0;
+
+  function show(i){
+    i = Math.max(0, Math.min(steps.length - 1, i));
+    cur = i;
+    steps.forEach(function(s, n){ s.hidden = n !== i; s.classList.remove('anim'); });
+    void steps[i].offsetWidth;
+    steps[i].classList.add('anim');
+    chips.forEach(function(c, n){ c.setAttribute('aria-current', n === i ? 'true' : 'false'); });
+    document.getElementById('fill').style.width = ((i + 1) / steps.length * 100) + '%';
+    document.getElementById('pos').textContent = 'Krok ' + (i + 1) + ' / ' + steps.length;
+    document.getElementById('prev').disabled = i === 0;
+    var nx = document.getElementById('next');
+    nx.disabled = i === steps.length - 1;
+    nx.textContent = i === steps.length - 1 ? 'Na konci' : 'Další krok';
+    try { history.replaceState(null, '', '#' + tokens[i]); } catch (e) {}
+  }
+  chips.forEach(function(c){ c.addEventListener('click', function(){ show(+c.dataset.go); }); });
+  document.getElementById('next').addEventListener('click', function(){ show(cur + 1); });
+  document.getElementById('prev').addEventListener('click', function(){ show(cur - 1); });
+  document.addEventListener('keydown', function(e){
+    if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+    if (e.key === 'ArrowRight') show(cur + 1);
+    if (e.key === 'ArrowLeft') show(cur - 1);
+  });
+  window.addEventListener('hashchange', function(){
+    var i = tokens.indexOf((location.hash || '').replace('#', ''));
+    if (i > -1 && i !== cur) show(i);
+  });
+
+  /* karty: [nadpis, podtitulek, [[štítek, text(HTML povolen)], ...]] */
+  function karty(mount, data){
+    var w = document.getElementById(mount);
+    data.forEach(function(k){
+      var d = document.createElement('div');
+      d.className = 'u';
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-expanded', 'false');
+      b.innerHTML = '<span class="co"></span><span class="cim"></span><span class="sign">+</span>';
+      b.querySelector('.co').textContent = k[0];
+      b.querySelector('.cim').textContent = k[1];
+      var det = document.createElement('div');
+      det.className = 'det';
+      det.hidden = true;
+      k[2].forEach(function(p){
+        var dl = document.createElement('dl');
+        var dt = document.createElement('dt');
+        dt.textContent = p[0];
+        var dd = document.createElement('dd');
+        dd.innerHTML = p[1];
+        dl.appendChild(dt); dl.appendChild(dd); det.appendChild(dl);
+      });
+      b.addEventListener('click', function(){
+        det.hidden = !det.hidden;
+        b.setAttribute('aria-expanded', String(!det.hidden));
+        b.querySelector('.sign').textContent = det.hidden ? '+' : '−';
+      });
+      d.appendChild(b); d.appendChild(det); w.appendChild(d);
+    });
+  }
+
+  function kviz(mount, items){
+    var w = document.getElementById(mount);
+    items.forEach(function(it){
+      var d = document.createElement('div');
+      d.className = 'sit';
+      var q = document.createElement('p');
+      q.className = 'q';
+      q.innerHTML = '<em></em><span></span>';
+      q.querySelector('em').textContent = it.stitek;
+      q.querySelector('span').textContent = it.text;
+      var row = document.createElement('div');
+      row.className = 'row';
+      var fb = document.createElement('p');
+      fb.className = 'fb';
+      fb.hidden = true;
+      it.opts.forEach(function(o){
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = o.label;
+        b.addEventListener('click', function(){
+          Array.prototype.forEach.call(row.querySelectorAll('button'), function(x){ x.className = ''; });
+          b.className = o.ok ? 'pick-ok' : 'pick-bad';
+          fb.textContent = o.why;
+          fb.className = 'fb' + (o.ok ? '' : ' no');
+          fb.hidden = false;
+        });
+        row.appendChild(b);
+      });
+      d.appendChild(q); d.appendChild(row); d.appendChild(fb); w.appendChild(d);
+    });
+  }
+
+  /* ---- krok 1 ---- */
+  karty('otazky', [
+    ['Jednou, nebo pravidelně?', 'rozhoduje o tom, jestli kupovat', [
+      ['Jednorázová věc', 'Většina nástrojů má bezplatnou verzi s vodoznakem nebo kratší stopáží. Na jedno video k výročí firmy to stačí. Předplatné má smysl až tam, kde děláte totéž každý měsíc.']
+    ]],
+    ['Nemám to už zaplacené?', 'nejčastěji přehlížená otázka', [
+      ['Co už možná máte', 'V Microsoft 365 je <a href="https://app.clipchamp.com/" target="_blank" rel="noopener">Clipchamp</a> na střih videa a <a href="https://designer.microsoft.com/" target="_blank" rel="noopener">MS Designer</a> na grafiku. Canva má generování obrázků i portrétů. Přepis schůzky umí Teams. Než si pořídíte pátou službu, projděte, co leží nevyužité.']
+    ]],
+    ['Vadí, když bude poznat, že je to AI?', 'někde ano, někde je to jedno', [
+      ['Kde to nevadí', 'Ilustrace do interní prezentace, podkres pod video, nástřel grafiky pro grafika. Nikdo to nezkoumá.'],
+      ['Kde to vadí', 'Cokoli, co nese vaši tvář a jméno navenek. Špatný umělý portrét uškodí víc než obyčejná fotka z mobilu u okna.']
+    ]]
+  ]);
+
+  kviz('q1', [
+    { stitek: 'Potřebuju speciální nástroj?', text: 'Chci sestříhat hodinový záznam porady z Teams na pětiminutový souhrn s titulky.',
+      opts: [
+        { label: 'Ano, koupit', ok: false, why: 'Zbytečně. Clipchamp v Microsoft 365 zvládne střih i automatické titulky a už ho platíte.' },
+        { label: 'Mám už to', ok: true, why: 'Přesně tak. Clipchamp, titulky umí automaticky. Nový nástroj na tohle nepotřebujete.' },
+        { label: 'Nejde to', ok: false, why: 'Jde, a docela snadno. Přepis i titulky jsou dnes běžná funkce.' }
+      ]},
+    { stitek: 'Potřebuju speciální nástroj?', text: 'Chci každý měsíc vydávat produktové video ve čtyřech jazycích, s mluvícím avatarem.',
+      opts: [
+        { label: 'Ano, koupit', ok: true, why: 'Tady předplatné dává smysl. Je to opakovaná práce, překlady a přegenerování jsou přesně to, v čem je avatar silný.' },
+        { label: 'Mám už to', ok: false, why: 'Mluvícího avatara v Microsoft 365 nenajdete. Na tohle je potřeba specializovaná služba.' },
+        { label: 'Stačí chat', ok: false, why: 'Chat napíše scénář a překlady, ale video z něj nevyleze.' }
+      ]},
+    { stitek: 'Potřebuju speciální nástroj?', text: 'Potřebuju jednu ilustraci na titulní slide prezentace pro interní poradu.',
+      opts: [
+        { label: 'Ano, koupit', ok: false, why: 'Na jeden obrázek rozhodně ne. Bezplatné generátory i Designer v M365 to zvládnou.' },
+        { label: 'Mám už to', ok: true, why: 'Správně. Designer, Canva nebo Bing — všechno zdarma nebo už zaplacené.' },
+        { label: 'Musí to dělat grafik', ok: false, why: 'Na interní slide je to plýtvání. Grafika si nechte na to, co jde ven s logem firmy.' }
+      ]}
+  ]);
+
+  /* ---- krok 2 ---- */
+  karty('hlas', [
+    ['Namluvit text', 'e-learning, podcast, podklad k videu', [
+      ['Co to umí', 'Vložíte text, vyberete hlas a dostanete nahrávku. Dá se řídit tempo, pauzy i důraz. <a href="https://elevenlabs.io/app/home" target="_blank" rel="noopener">ElevenLabs</a> je v téhle kategorii nejrozšířenější.'],
+      ['Kde to ušetří čas', 'U materiálů, které se mění. Když se změní jedna věta v kurzu, přepíšete ji a přegenerujete — místo vracení se do studia kvůli deseti vteřinám.']
+    ]],
+    ['Klonovat vlastní hlas', 'váš hlas, váš text, bez mikrofonu', [
+      ['Jak to funguje', 'Nahrajete vzorek svého hlasu, služba si z něj vytvoří model a pak čte cokoli napíšete. U delších materiálů je rozdíl oproti obecnému hlasu znát.'],
+      ['Pozor', 'Jen svůj hlas, nebo cizí s doloženým souhlasem. A u materiálů ven platí povinnost označení — hlas vaší nadřízené, který nikdy nic takového neřekla, je deepfake se vším všudy.']
+    ]],
+    ['Střih zvuku jako textu', 'nejpraktičtější funkce ze všech', [
+      ['Jak to funguje', 'Nahrávka se přepíše a vy upravujete text. Smažete slovo v přepisu a zmizí i z nahrávky. Jedním kliknutím jdou vyhodit všechna „ehm“ a pauzy. Umí to <a href="https://web.descript.com/" target="_blank" rel="noopener">Descript</a>.'],
+      ['Pro koho', 'Pro každého, kdo někdy stříhal zvuk ve vlnovce a hledal, kde přesně začíná slovo.']
+    ]],
+    ['Přepis a souhrn schůzky', 'zápis, který vznikne sám', [
+      ['Nástroje', 'Teams to umí zabudovaně. Samostatně <a href="https://www.meetjamie.ai/" target="_blank" rel="noopener">Jamie</a> nebo <a href="https://fireflies.ai/" target="_blank" rel="noopener">Fireflies</a>, které se připojí jako účastník a pošlou souhrn s úkoly.'],
+      ['Pozor', 'Nahrávání schůzky vyžaduje vědomí ostatních účastníků. Bot, který se tiše připojí a nahrává, je problém i bez AI Actu.']
+    ]]
+  ]);
+
+  /* ---- krok 3 ---- */
+  karty('video', [
+    ['Mluvící avatar', 'postava, která odvypráví váš text', [
+      ['Jak to funguje', 'Vyberete avatara (nebo si necháte vytvořit vlastního z nahrávky), vložíte text a dostanete video. <a href="https://www.heygen.com/" target="_blank" rel="noopener">HeyGen</a> a <a href="https://app.elai.io/" target="_blank" rel="noopener">Elai</a> jsou v téhle kategorii nejznámější.'],
+      ['Pozor', 'Avatar s cizí tváří bez souhlasu je deepfake. I u vlastního avatara platí povinnost označit, že jde o uměle vytvořený obsah.']
+    ]],
+    ['Video z textu', 'z článku nebo scénáře rovnou sestřih', [
+      ['Jak to funguje', 'Vložíte text, nástroj ho rozseká na scény, dohledá k nim záběry z banky a přidá titulky a hudbu. <a href="https://app.pictory.ai/home" target="_blank" rel="noopener">Pictory</a> na tohle stačí.'],
+      ['Realita', 'Výsledek vypadá jako stovky podobných videí, protože záběry jsou ze stejných bank. Na sociální sítě to projde, na firemní prezentaci spíš ne.']
+    ]],
+    ['Střih a titulky', 'to, co potřebujete nejčastěji', [
+      ['Nástroje', '<a href="https://app.clipchamp.com/" target="_blank" rel="noopener">Clipchamp</a> máte v Microsoft 365 — střih, automatické titulky, převod do formátů na sítě. <a href="https://web.descript.com/" target="_blank" rel="noopener">Descript</a> umí totéž přes úpravu přepisu.'],
+      ['Tip', 'Titulky nedělejte kvůli AI Actu, ale kvůli lidem. Velká část videí na telefonu se přehrává bez zvuku.']
+    ]]
+  ]);
+
+  /* ---- krok 4 ---- */
+  karty('portret', [
+    ['Podobnost, ne krása', 'nejčastější zklamání', [
+      ['Proč', 'Nástroje mají tendenci portrét „vylepšit“ — vyhladit pleť, srovnat rysy. Výsledek je hezký člověk, který nejste vy. Na profilu, kde vás lidé poznávají, je to problém. Hledejte ukázky, kde je vidět vstupní fotka i výstup.']
+    ]],
+    ['Kolik fotek chce na vstupu', 'méně neznamená lépe', [
+      ['Proč', 'Služby, které si vystačí s jednou fotkou, dávají výrazně horší podobu. Deset až dvacet snímků z různých úhlů a světel je rozumné minimum.']
+    ]],
+    ['Co se stane s fotkami', 'otázka, na kterou musí být odpověď', [
+      ['Proč', 'Nahráváte svoji biometrickou podobu cizí službě. Hledejte, jak dlouho fotky drží, jestli jdou smazat a jestli se používají k trénování. Bez jasné odpovědi bych to nedělala.']
+    ]],
+    ['Licence k výsledku', 'hlavně u firemních fotek', [
+      ['Proč', 'Potřebujete vědět, jestli smíte výsledek použít komerčně a na webu firmy. U bezplatných verzí to často neplatí.']
+    ]]
+  ]);
+
+  karty('grafika', [
+    ['Vygenerovat obrázek', 'ilustrace, pozadí, nástřel', [
+      ['Kde', '<a href="https://designer.microsoft.com/" target="_blank" rel="noopener">MS Designer</a> a <a href="https://www.bing.com/images/create" target="_blank" rel="noopener">Bing</a> zdarma s účtem Microsoft, <a href="https://www.canva.com" target="_blank" rel="noopener">Canva</a> v rámci předplatného, <a href="https://app.leonardo.ai/" target="_blank" rel="noopener">Leonardo</a> a <a href="https://stablediffusionweb.com/" target="_blank" rel="noopener">Stable Diffusion</a> pro víc kontroly nad stylem.']
+    ]],
+    ['Odmazat pozadí', 'patnáct vteřin místo půl hodiny', [
+      ['Kde', '<a href="http://www.remove.bg" target="_blank" rel="noopener">remove.bg</a> dělá jednu věc a dělá ji dobře. Hodí se na fotky lidí do prezentací a na produktové obrázky.']
+    ]],
+    ['Schéma z textu', 'podceňovaný nástroj do školení', [
+      ['Kde', '<a href="https://app.napkin.ai/signin" target="_blank" rel="noopener">Napkin AI</a> vezme odstavec textu a nabídne k němu diagramy, ze kterých si vyberete. Na procesy a postupy do materiálů je to nejrychlejší cesta od věty k obrázku.']
+    ]]
+  ]);
+
+  /* ---- krok 5 ---- */
+  var parts = [
+    ['Co', 'Hyperrealistický rozložený pohled na kávovar, všechny součástky se vznášejí symetricky kolem středové osy'],
+    ['Styl', 'komerční produktová fotografie, ultra-detailní textury každé komponenty'],
+    ['Světlo', 'studiové osvětlení s jemným výplňovým světlem'],
+    ['Kompozice', 'čisté tmavé pozadí, pohled zepředu'],
+    ['Formát', 'poměr stran 1:1, rozlišení 8K'],
+    ['Co nechci', 'bez textu, bez log, bez lidí v záběru']
+  ];
+  var on = [false, false, false, false, false, false];
+  var pw = document.getElementById('parts'), po = document.getElementById('promptOut'), ct = document.getElementById('count');
+  function renderPrompt(){
+    po.innerHTML = '';
+    parts.forEach(function(p, i){
+      var s = document.createElement('span');
+      s.textContent = (on[i] ? p[1] : '[' + p[0].toLowerCase() + ']') + (i < parts.length - 1 ? ', ' : '');
+      if (!on[i]) s.className = 'off';
+      po.appendChild(s);
+    });
+    var n = on.filter(Boolean).length;
+    var msg = ['Prázdné zadání. Dostanete náhodný obrázek kávovaru.',
+               'Jedna část. Model si domyslí styl, světlo i formát — a domyslí si je nevýrazně.',
+               'Dvě části. Začíná to mít tvar, ale výsledek bude pokaždé jiný.',
+               'Tři části. Použitelné, i když do pozadí a formátu ještě mluvit nebudete.',
+               'Čtyři části. Tady už víte, co dostanete.',
+               'Pět částí. Zbývá říct, co v obrázku být nemá.',
+               'Všech šest. Tohle je zadání, po kterém se výsledek dá opakovat.'][n];
+    ct.textContent = n + ' ze 6 částí — ' + msg;
+  }
+  parts.forEach(function(p, i){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'part';
+    b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = '<span></span><em>+</em>';
+    b.querySelector('span').textContent = p[0];
+    b.addEventListener('click', function(){
+      on[i] = !on[i];
+      b.setAttribute('aria-pressed', String(on[i]));
+      b.querySelector('em').textContent = on[i] ? '✓' : '+';
+      renderPrompt();
+    });
+    pw.appendChild(b);
+  });
+  renderPrompt();
+
+  /* kopírování hotových promptů */
+  Array.prototype.forEach.call(document.querySelectorAll('.kopie'), function(btn){
+    btn.addEventListener('click', function(){
+      var zdroj = document.getElementById(btn.dataset.cil);
+      var hotovo = function(){
+        btn.textContent = 'Zkopírováno';
+        btn.classList.add('hotovo');
+        setTimeout(function(){ btn.textContent = 'Kopírovat'; btn.classList.remove('hotovo'); }, 2200);
+      };
+      var nouze = function(){
+        try {
+          var r = document.createRange();
+          r.selectNodeContents(zdroj);
+          var s = window.getSelection();
+          s.removeAllRanges();
+          s.addRange(r);
+          btn.textContent = 'Označeno — Ctrl+C';
+          setTimeout(function(){ btn.textContent = 'Kopírovat'; }, 3000);
+        } catch (e) {}
+      };
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(zdroj.textContent).then(hotovo, nouze);
+        } else { nouze(); }
+      } catch (e) { nouze(); }
+    });
+  });
+
+  /* ---- krok 6 ---- */
+  var rozc = [
+    ['Hlas a přepisy', [['ElevenLabs', 'https://elevenlabs.io/app/home'], ['Descript', 'https://web.descript.com/'], ['Jamie', 'https://www.meetjamie.ai/'], ['Fireflies', 'https://fireflies.ai/']]],
+    ['Video', [['HeyGen', 'https://www.heygen.com/'], ['Elai', 'https://app.elai.io/'], ['Pictory', 'https://app.pictory.ai/home'], ['Clipchamp', 'https://app.clipchamp.com/']]],
+    ['Obrázky a grafika', [['MS Designer', 'https://designer.microsoft.com/'], ['Bing generátor', 'https://www.bing.com/images/create'], ['Canva', 'http://www.canva.com'], ['Leonardo', 'https://app.leonardo.ai/'], ['Stable Diffusion', 'https://stablediffusionweb.com/'], ['remove.bg', 'http://www.remove.bg'], ['Napkin AI', 'https://app.napkin.ai/signin']]],
+    ['Prezentace a web', [['Gamma', 'https://gamma.app/'], ['Plus AI', 'https://plusai.com/']]],
+    ['Hudba', [['Suno', 'https://suno.com/']]],
+    ['Výzkum s odkazy', [['Perplexity', 'https://www.perplexity.ai/'], ['Elicit', 'https://elicit.com/'], ['NotebookLM', 'https://notebooklm.google.com/']]],
+    ['Data a vizualizace', [['Julius.ai', 'https://julius.ai/']]],
+    ['Automatizace', [['Make', 'http://www.make.com/'], ['Zapier', 'https://zapier.com/'], ['n8n', 'https://n8n.io/'], ['Power Automate', 'https://make.powerautomate.com/']]],
+    ['Aplikace a weby', [['Lovable', 'https://lovable.dev/dashboard'], ['Replit', 'https://replit.com/'], ['bolt.new', 'https://bolt.new/']]]
+  ];
+  var rw = document.getElementById('rozcestnik');
+  rozc.forEach(function(r){
+    var tr = document.createElement('tr');
+    var td1 = document.createElement('td');
+    td1.textContent = r[0];
+    var td2 = document.createElement('td');
+    r[1].forEach(function(n, i){
+      if (i) td2.appendChild(document.createTextNode(' · '));
+      var a = document.createElement('a');
+      a.href = n[1];
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = n[0];
+      td2.appendChild(a);
+    });
+    tr.appendChild(td1); tr.appendChild(td2); rw.appendChild(tr);
+  });
+
+  var rules = [
+    'Zkusila jsem to nejdřív v bezplatné verzi na vlastním vzorku — a v češtině?',
+    'Nemám podobnou funkci už zaplacenou v Microsoft 365 nebo v Canvě?',
+    'Budu tohle dělat opakovaně, nebo je to jednorázovka?',
+    'Vím, co se stane s tím, co tam nahraju — hlasem, fotkami, dokumenty?',
+    'Mám souhlas všech, jejichž hlas, tvář nebo fotka to má použít?'
+  ];
+  var rulesW = document.getElementById('rules'), dm = document.getElementById('doneMsg');
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem('aimedia-rules') || '{}') || {}; } catch (e) { saved = {}; }
+  function checkDone(){
+    var all = Array.prototype.slice.call(rulesW.querySelectorAll('input')).every(function(i){ return i.checked; });
+    dm.hidden = !all;
+  }
+  rules.forEach(function(r, i){
+    var li = document.createElement('li');
+    var lab = document.createElement('label');
+    var inp = document.createElement('input');
+    inp.type = 'checkbox';
+    inp.id = 'media-rule' + i;
+    inp.checked = !!saved['r' + i];
+    var sp = document.createElement('span');
+    sp.className = 'txt';
+    sp.textContent = r;
+    inp.addEventListener('change', function(){
+      saved['r' + i] = inp.checked;
+      try { localStorage.setItem('aimedia-rules', JSON.stringify(saved)); } catch (e) {}
+      checkDone();
+    });
+    lab.appendChild(inp); lab.appendChild(sp); li.appendChild(lab); rulesW.appendChild(li);
+  });
+  checkDone();
+
+  var h = (location.hash || '').replace('#', '');
+  var ix = tokens.indexOf(h);
+  show(ix > -1 ? ix : 0);
+})();
+</script>
+
+</body>
+</html>

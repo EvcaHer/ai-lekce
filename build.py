@@ -26,6 +26,8 @@ LEKCE = [
                     "Časová osa, kvízy a praktická pravidla pro označování AI obsahu."),
     ("ai-nastroje.html", "Rozdíl mezi chatem, asistentem a agentem, čtyři velké nástroje vedle sebe "
                          "a kdy má smysl provozovat AI lokálně."),
+    ("ai-media.html", "Specializované AI aplikace na hlas, video a obrázky, profesionální portréty, "
+                      "prompty na obrázky a rozcestník nástrojů."),
 ]
 
 SKELET = """<!doctype html>
