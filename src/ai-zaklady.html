@@ -320,6 +320,10 @@ footer.sig{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);fon
     if (e.key === 'ArrowRight') show(cur + 1);
     if (e.key === 'ArrowLeft') show(cur - 1);
   });
+  window.addEventListener('hashchange', function(){
+    var i = tokens.indexOf((location.hash || '').replace('#', ''));
+    if (i > -1 && i !== cur) show(i);
+  });
 
   /* ---------- krok 1 ---------- */
   var myths = [
