@@ -1,0 +1,18 @@
+# video a zvuk se do gitu nedávají (GitHub má limit 100 MB na soubor)
+*.mp4
+*.mov
+*.mkv
+*.wav
+*.mp3
+*.m4a
+
+# Windows a OneDrive
+Thumbs.db
+desktop.ini
+Desktop.ini
+*.lnk
+
+# editory
+.vscode/
+.idea/
+*.swp
